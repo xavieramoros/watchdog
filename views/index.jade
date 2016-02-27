@@ -2,4 +2,49 @@ extends layout
 
 block content
   h1= title
-  p Welcome to #{title}
+  p Keep track of changed that might break your business
+
+    .row
+      .col-sm-6 
+        // TASK LIST
+        h2 Task List
+        #taskList
+          table
+            thead
+              th Url
+              th CrawlFrequency
+              th LastCrawl
+              th Delete Task
+            tbody
+        // /TASK LIST
+
+        // ADD Task
+        h2 Add Task
+        #addTask
+          form(role='form')
+            .form-group
+              label(for='inputTaskUrl') Url:
+              input#inputTaskUrl.form-control(type='txt', placeholder='Url to check')
+            .form-group
+              label(for='inputTaskCrawlFrequency') Crawl Frequency (in days):
+              input#inputTaskCrawlFrequency.form-control(type='number',placeholder='How often the url will be checked')
+            button#btnAddTask.btn.btn-default(type='submit') Add Task          
+
+      .col-sm-6 
+        // USER INFO
+        #urlInfo
+          h2 Url Info
+          p
+            strong Url:
+            |  <span id='urlUrl'></span>
+            br
+            strong Title:
+            |  <span id='urlTitle'></span>
+            br
+            strong LastCrawl:
+            |  <span id='urlLastCrawl'></span>
+            br
+        // /USER INFO
+
+  // /WRAPPER
+

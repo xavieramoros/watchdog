@@ -12,6 +12,8 @@ var monk = require('monk');
 var db = monk('localhost:27017/watchdog');
 
 var routes = require('./routes/index');
+var urls = require('./routes/urls');
+var tasks = require('./routes/tasks');  
 
 var app = express();
 
@@ -35,6 +37,9 @@ app.use(function(req,res,next){
 
 
 app.use('/', routes);
+app.use('/urls', urls);
+app.use('/tasks', tasks);
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
