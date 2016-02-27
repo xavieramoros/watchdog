@@ -1,0 +1,11 @@
+extends layout
+
+block content
+    h1.
+        Url List
+    ul
+        each url, i in urlList
+            li
+                h2.
+                  #{url.title}
+                a(href="#{url.url}")= url.url
