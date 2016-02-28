@@ -92,24 +92,18 @@ function addTask(event) {
             type: 'POST',
             data: newTask,
             url: '/tasks/add',
-            dataType: 'JSON'
-        }).done(function( response ) {
-
-            // Check for successful (blank) response
+            dataType: 'json'
+        }).done(function(response) {
+            // Check for successful (blank) response            
             if (response.msg === '') {
-
                 // Clear the form inputs
                 $('#addTask form input').val('');
-
                 // Update the table
                 populateTasksTable();
-
             }
             else {
-
                 // If something goes wrong, alert the error message that our service returned
                 alert('Error: ' + response.msg);
-
             }
         });
     }
@@ -143,12 +137,9 @@ function deleteTask(event) {
             else {
                 alert('Error: ' + response.msg);
             }
-
             // Update the table
             populateTasksTable();
-
         });
-
     }
     else {
 

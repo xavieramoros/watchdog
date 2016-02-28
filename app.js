@@ -5,12 +5,6 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
-
-//MongoDB settings:
-var mongo = require('mongodb');
-var monk = require('monk');
-var db = monk('localhost:27017/watchdog');
-
 var routes = require('./routes/index');
 var urls = require('./routes/urls');
 var tasks = require('./routes/tasks');  
@@ -31,10 +25,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Make our db accessible to our router, wrapping database object into every request //FIXME
 app.use(function(req,res,next){
-    req.db = db;
     next();
 });
-
 
 app.use('/', routes);
 app.use('/urls', urls);

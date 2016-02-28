@@ -19,16 +19,18 @@ block content
         // /TASK LIST
 
         // ADD Task
-        h2 Add Task
         #addTask
+          h2 Add Task
           form(role='form')
-            .form-group
+            .form-group.col-xs-8
               label(for='inputTaskUrl') Url:
               input#inputTaskUrl.form-control(type='txt', placeholder='Url to check')
-            .form-group
-              label(for='inputTaskCrawlFrequency') Crawl Frequency (in days):
-              input#inputTaskCrawlFrequency.form-control(type='number',placeholder='How often the url will be checked')
-            button#btnAddTask.btn.btn-default(type='submit') Add Task          
+            .form-group.col-xs-3
+                label(for='inputTaskCrawlFrequency') Crawl Frequency:
+                input#inputTaskCrawlFrequency.form-control(type='number',placeholder='In days')
+    .row                  
+      .col-sm-6   
+        button#btnAddTask.btn.btn-default(type='submit') Add Task          
 
       .col-sm-6 
         // USER INFO
