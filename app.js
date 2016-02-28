@@ -6,8 +6,8 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
 var routes = require('./routes/index');
-var urls = require('./routes/urls');
-var tasks = require('./routes/tasks');  
+var crawls = require('./controllers/crawls');
+var tasks = require('./controllers/tasks');  
 
 var app = express();
 
@@ -29,7 +29,7 @@ app.use(function(req,res,next){
 });
 
 app.use('/', routes);
-app.use('/urls', urls);
+app.use('/crawls', crawls);
 app.use('/tasks', tasks);
 
 

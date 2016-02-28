@@ -31,12 +31,27 @@ var listTasks = function(callback){
   });
 }
 
+/*Delete a specific task*/
 var deleteTask = function(id,callback){
   var taskcollection = db.get('taskcollection');
   var taskToDelete = id;
   taskcollection.remove({ '_id' : taskToDelete }, function(err) {
     result = (err === null) ? { msg: '' } : { msg:'error: ' + err };
     callback(result);
+  });
+}
+
+var getTargetUrl = function(id,callback){
+  var taskcollection = db.get('taskcollection');
+  console.log("In getTargetUrl...");
+  var targetTask = id;
+  taskcollection.find({ '_id' : targetTask }, {}, function(err, docs) {
+    console.log("Returned from Mongo");
+    if(e){
+      callback(e,null);
+    }else{
+      callback(null,docs.url);
+    } 
   });
 }
 

@@ -1,5 +1,6 @@
 var express = require('express');
 var task = require('./../models/task')
+var crawl = require('./../models/crawl')
 var router = express.Router();
 
 
@@ -28,10 +29,28 @@ router.post('/add', function(req, res) {
 /* POST to Delete Task Service */
 router.delete('/delete/:id', function(req, res) {
   console.log("DELETE TASK: ");
-  console.log(req.body);  
   task.deleteTask(req.params.id,function(result){
     res.json(result);
   });
 });
+
+/* POST to Refresh Task Service */
+router.post('/refresh/:id', function(req, res) {
+  console.log("REFRESH TASK: ",req.params.id);
+
+
+  url = "www.vocativ.com/tech";//FIXME
+  res.redirect('/crawl/?'+url);
+  /*
+  //get task url
+  task.getTargetUrl(req.params.id,function(e,url){
+    //once we have url, trigger crawl
+    if(e) console.log("Error:",e);
+    console.log("Crawling url:",url);
+    res.redirect('/crawl/:'+url);
+  });
+  */
+});
+
 
 module.exports = router;

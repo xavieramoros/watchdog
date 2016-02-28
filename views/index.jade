@@ -11,10 +11,11 @@ block content
         #taskList
           table
             thead
+              th Force crawl
               th Url
-              th CrawlFrequency
-              th LastCrawl
-              th Delete Task
+              th Crawl Frequency
+              th Last Crawl
+              th Delete 
             tbody
         // /TASK LIST
 
@@ -27,10 +28,19 @@ block content
               input#inputTaskUrl.form-control(type='txt', placeholder='Url to check')
             .form-group.col-xs-3
                 label(for='inputTaskCrawlFrequency') Crawl Frequency:
-                input#inputTaskCrawlFrequency.form-control(type='number',placeholder='In days')
-    .row                  
-      .col-sm-6   
-        button#btnAddTask.btn.btn-default(type='submit') Add Task          
+                  .dropdown
+                    button#inputTaskCrawlFrequency.btn.btn-default.dropdown-toggle(type='button', data-toggle='dropdown', aria-haspopup='true', aria-expanded='true')
+                      | Select frequency
+                      span.caret
+                    ul.dropdown-menu(aria-labelledby='inputTaskCrawlFrequency')
+                      li
+                        a(href='#') Every day
+                      li
+                        a(href='#') Every week
+                      li
+                        a(href='#') Every month
+          .row                  
+          button#btnAddTask.btn.btn-default(type='submit') Add Task          
 
       .col-sm-6 
         // USER INFO
