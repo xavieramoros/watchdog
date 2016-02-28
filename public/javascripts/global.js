@@ -20,9 +20,6 @@ $(document).ready(function() {
     var selText = $(this).text();
     $(this).parents('.dropdown').find('.dropdown-toggle').html(selText+' <span class="caret"></span>');
   });
-
-
-
 });
 
 // Functions =============================================================
@@ -34,7 +31,7 @@ function populateTasksTable() {
   var tableContent = '';
 
   // jQuery AJAX call for JSON
-  $.getJSON( '/tasks/list', function( data ) {
+  $.getJSON('/tasks/list', function( data ) {
 
     // Stick our user data array into a tasklist variable in the global object
     taskListData = data;
@@ -126,7 +123,8 @@ function refreshTask(event){
   event.preventDefault();
   $.ajax({
     type: 'POST',
-    url: '/tasks/refresh/' + $(this).attr('rel')
+    url: '/tasks/refresh/' + $(this).attr('rel'),
+    dataType:'json'
   }).done(function( response ) {
     // Check for a successful (blank) response
     console.log("&&&&&&BACK:",response);

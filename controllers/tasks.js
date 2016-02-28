@@ -1,6 +1,7 @@
 var express = require('express');
 var task = require('./../models/task')
 var crawl = require('./../models/crawl')
+var crawls = require('./../controllers/crawls')
 var router = express.Router();
 
 
@@ -34,22 +35,23 @@ router.delete('/delete/:id', function(req, res) {
   });
 });
 
-/* POST to Refresh Task Service */
+/* POST to refresh Task Service */
 router.post('/refresh/:id', function(req, res) {
-  console.log("REFRESH TASK: ",req.params.id);
+  console.log("REFRESH TASK: ");
+  //console.log("req.params:",req.params);
 
-
-  url = "www.vocativ.com/tech";//FIXME
-  res.redirect('/crawl/?'+url);
-  /*
   //get task url
   task.getTargetUrl(req.params.id,function(e,url){
     //once we have url, trigger crawl
-    if(e) console.log("Error:",e);
-    console.log("Crawling url:",url);
-    res.redirect('/crawl/:'+url);
+    if(e){
+      console.log("Error:",e);
+      res.json();
+    }else{
+      console.log("Crawling url:",url);
+      req.flash('url', url);//using session flash message to pass url.      
+      res.redirect('/crawls/url');
+    }
   });
-  */
 });
 
 

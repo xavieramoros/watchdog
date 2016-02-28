@@ -45,12 +45,11 @@ var getTargetUrl = function(id,callback){
   var taskcollection = db.get('taskcollection');
   console.log("In getTargetUrl...");
   var targetTask = id;
-  taskcollection.find({ '_id' : targetTask }, {}, function(err, docs) {
-    console.log("Returned from Mongo");
-    if(e){
-      callback(e,null);
+  taskcollection.find({ '_id' : targetTask  }, {}, function(err, docs) {
+    if(err){
+      callback(err,null);
     }else{
-      callback(null,docs.url);
+      callback(null,docs[0].url);
     } 
   });
 }
@@ -58,5 +57,6 @@ var getTargetUrl = function(id,callback){
 module.exports = {
   addTask:addTask,
   listTasks:listTasks,
-  deleteTask:deleteTask
+  deleteTask:deleteTask,
+  getTargetUrl:getTargetUrl
 };
