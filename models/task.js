@@ -3,31 +3,32 @@
 var mongo = require('mongodb');
 var monk = require('monk');
 var db = monk('localhost:27017/watchdog');
+var debug = require('debug')('monk')
 
-/*Add task to taskcollection*/
-
+/*Function that adds task to taskcollection
+Returns id if success
+*/
 var addTask = function(url,freq,callback){
-  // Set our internal DB variable
-  // Set our collection
-  var taskcollection = db.get('taskcollection');
-
+  var taskcollection = db.get('taskcollection');  
   // Submit to the DB
   taskcollection.insert({
       "url" : url,
       "crawl_frequency": freq,
-      "last_crawl": ""
+      "last_crawl": " "
   }, function (err, doc) {
-    result = (err === null) ? { msg: '' } : { msg:'error: ' + err };
-    callback(result)
+    if(err) throw err;
+    (err === null) ? callback(null,doc._id) : callback(err,null);
   });
 }
 
-/*Function that lists all the tasks*/
+/*Function that lists all the tasks
+* @return {docs}: Document retrieved with all the tasks.
+*/
 var listTasks = function(callback){
   var taskcollection = db.get('taskcollection');
-  taskcollection.find({},{},function(e,docs){
-    if(e) console.log("ERROR:",e);
-    callback(docs);      
+  taskcollection.find({},{},function(err,docs){
+    if(err) throw err;
+    (err === null) ? callback(null,docs) : callback(err,null);
   });
 }
 
@@ -35,22 +36,46 @@ var listTasks = function(callback){
 var deleteTask = function(id,callback){
   var taskcollection = db.get('taskcollection');
   var taskToDelete = id;
-  taskcollection.remove({ '_id' : taskToDelete }, function(err) {
-    result = (err === null) ? { msg: '' } : { msg:'error: ' + err };
-    callback(result);
+  taskcollection.remove({ '_id' : taskToDelete }, function(err,docs) {
+    (err === null) ? callback(null,docs) : callback(err,null);
   });
 }
 
+var updateTaskDate = function(id, callback){
+  var taskcollection = db.get('taskcollection');
+  // Submit to the DB
+  var current_date = new Date();
+  taskcollection.findAndModify(
+    { "_id": id },
+    { "$set": { "last_crawl": current_date}}, 
+    function (err, doc) {
+      (err === null) ? callback(null,doc):callback(err,null);
+  });
+        /*
+  taskcollection.findAndModify({'_id':id},
+    {"$set:":{
+      "last_crawl": new Date()}
+    }, 
+    function (err, doc) {
+      (err === null) ? callback(null,doc):callback(err,null);
+  });*/
+
+}
+
+/*Function that give a task id returns it's url. */
 var getTargetUrl = function(id,callback){
   var taskcollection = db.get('taskcollection');
-  console.log("In getTargetUrl...");
   var targetTask = id;
-  taskcollection.find({ '_id' : targetTask  }, {}, function(err, docs) {
+  console.log(targetTask);
+  taskcollection.find({ '_id' : targetTask }, {}, function(err, docs) {
     if(err){
-      callback(err,null);
-    }else{
-      callback(null,docs[0].url);
+      callback(err,null)
     } 
+    else{
+      var url = docs[0].url;
+      console.log("Task has URL:",url);
+      callback(null,url);
+    }
   });
 }
 
@@ -58,5 +83,6 @@ module.exports = {
   addTask:addTask,
   listTasks:listTasks,
   deleteTask:deleteTask,
-  getTargetUrl:getTargetUrl
+  getTargetUrl:getTargetUrl,
+  updateTaskDate:updateTaskDate
 };

@@ -5,11 +5,12 @@ var db = monk('localhost:27017/watchdog');
 
 /*Add task to taskcollection*/
 
-var saveCrawl = function(data,callback){
+var saveCrawl = function(url,data,callback){
   var crawlcollection = db.get('crawlcollection');
 
   // Submit to the DB
   crawlcollection.insert({
+      "url": url,
       "title" : data.title,
       "meta_description": data.meta_description,
       "crawl_date": new Date(),

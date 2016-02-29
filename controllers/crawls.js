@@ -4,11 +4,11 @@ var crawl = require('./../models/crawl')
 var flash = require('connect-flash'); //used to send temp messages between redirects
 
 //call the crawler
-
-router.get('/url', function(req, res) {
+/*
+router.get('/new', function(req, res) {
   //this function gets url to crawl from flash:
   url=JSON.stringify(req.flash('url'));
-  console.log("CRAWL URL (GET):",url);
+  console.log("NEW CRAWL URL (GET):",url);
   crawlUrl(url, function(data){
     //once crawled, save data
     crawl.saveCrawl(data,function(result){
@@ -16,17 +16,29 @@ router.get('/url', function(req, res) {
     });
   });
 });
+*/
 
-router.post('/url', function(req, res) {
+router.post('/new', function(req, res) {
   var url = req.body.url;
-  console.log("CRAWL URL (POST):",url);
+  console.log("NEW CRAWL URL (POST):",url);
 
   crawlUrl(url, function(data){
-    //once crawled, save data
-    crawl.saveCrawl(data,function(result){
-      res.json(result);
-    });
+    res.json(data);
   });
+});
+
+
+// Function to save a crawl 
+router.post('/save', function(req, res) {
+  var url = req.body.url;
+  var crawlData = req.body.data;
+
+  console.log("SAVE CRAWL DATA:",crawlData);
+
+  crawl.saveCrawl(url,crawlData,function(result){
+    res.json(result);
+  });
+
 });
 
 
@@ -42,12 +54,6 @@ var crawlUrl = function(url, callback){
   callback(dummyData);
 }
 
-//function that saves the crawl data:
-var saveCrawl = function(data, callback){
-  crawl.saveCrawl(data,function(result){
-    callback(result); 
-  });
-};
 
 
 module.exports = router;

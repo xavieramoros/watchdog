@@ -31,24 +31,26 @@ function populateTasksTable() {
   var tableContent = '';
 
   // jQuery AJAX call for JSON
-  $.getJSON('/tasks/list', function( data ) {
+  $.getJSON('/tasks/list', function(data) {
+    if(data){
+      // Stick our user data array into a tasklist variable in the global object
+      taskListData = data;
 
-    // Stick our user data array into a tasklist variable in the global object
-    taskListData = data;
-
-    // For each item in our JSON, add a table row and cells to the content string
-    $.each(data, function(){
-      tableContent += '<tr>';
-      tableContent += '<td><a href="#" class="linkrefreshtask glyphicon glyphicon-refresh" rel="' + this._id + '"></a></td>';            
-      tableContent += '<td><a href="#" class="    " rel="' + this.url + '">' + this.url + '</a></td>';
-      tableContent += '<td> Every ' + this.crawl_frequency + 'day</td>';            
-      tableContent += '<td> Last crawl: ' + this.last_crawl + '</td>';            
-      tableContent += '<td><a href="#" class="linkdeletetask glyphicon glyphicon-remove" rel="' + this._id + '"></a></td>';
-      tableContent += '</tr>';
-    });
-
-    // Inject the whole content string into our existing HTML table
-    $('#taskList table tbody').html(tableContent);
+      // For each item in our JSON, add a table row and cells to the content string
+      $.each(data, function(){
+        tableContent += '<tr>';
+        tableContent += '<td><a href="#" class="linkrefreshtask glyphicon glyphicon-refresh" rel="' + this._id + '"></a></td>';            
+        tableContent += '<td><a href="#" class="    " rel="' + this.url + '">' + this.url + '</a></td>';
+        tableContent += '<td> Every ' + this.crawl_frequency + ' day';
+        tableContent += (this.crawl_frequency >1 ? "s":""); //add s if >1 days
+        tableContent +='</td>';            
+        tableContent += '<td>' + this.last_crawl + '</td>';            
+        tableContent += '<td><a href="#" class="linkdeletetask glyphicon glyphicon-remove" rel="' + this._id + '"></a></td>';
+        tableContent += '</tr>';
+      });
+      // Inject the whole content string into our existing HTML table
+      $('#taskList table tbody').html(tableContent);
+    }
   });
 };
 
@@ -85,12 +87,28 @@ function addTask(event) {
 
   // Check and make sure errorCount's still at zero
   if(errorCount === 0) {
+    var dropdownText = $('.dropdown-toggle').text();
+    var dropdownNumber;
+    
+    switch(dropdownText.trim()){
+      case "Every day":
+        dropdownNumber = 1;
+        break;
+      case "Every week":
+        dropdownNumber = 7;
+        break;
+      case "Every month":
+        dropdownNumber = 30;
+        break;  
+      default:
+        dropdownNumber = 1;
+    }
 
     // If it is, compile all user info into one object
     var newTask = {
       'url': $('#addTask form input#inputTaskUrl').val(),
-      'crawl_frequency': $('#addTask form input#inputTaskCrawlFrequency').val(),
-       }    
+      'crawl_frequency': dropdownNumber
+    };    
 
     // Use AJAX to post the object to our adduser service
     $.ajax({
@@ -100,7 +118,7 @@ function addTask(event) {
       dataType: 'json'
     }).done(function(response) {
       // Check for successful (blank) response            
-      if (response.msg === '') {
+      if (response === '') {
         // Clear the form inputs
         $('#addTask form input').val('');
         // Update the table
@@ -126,9 +144,8 @@ function refreshTask(event){
     url: '/tasks/refresh/' + $(this).attr('rel'),
     dataType:'json'
   }).done(function( response ) {
-    // Check for a successful (blank) response
-    console.log("&&&&&&BACK:",response);
-    if (response.msg !== '') alert('Error: ' + response.msg);
+    //FIXME: check for errors
+
     // Update the table
     populateTasksTable();
   });
@@ -150,13 +167,8 @@ function deleteTask(event) {
       type: 'DELETE',
       url: '/tasks/delete/' + $(this).attr('rel')
     }).done(function( response ) {
+      //FIXME: check for errors
 
-      // Check for a successful (blank) response
-      if (response.msg === '') {
-      }
-      else {
-        alert('Error: ' + response.msg);
-      }
       // Update the table
       populateTasksTable();
     });

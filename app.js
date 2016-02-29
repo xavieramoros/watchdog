@@ -40,7 +40,7 @@ app.use('/crawls', crawls);
 app.use('/tasks', tasks);
 
 var configuration = require('./config')
-var conf = configuration.config();
+conf = configuration.config();
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
