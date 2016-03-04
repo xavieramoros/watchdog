@@ -5,12 +5,20 @@ var crawls = require('./../controllers/crawls')
 var router = express.Router();
 var request = require('request');
 
+var configuration = require('./../config')
+conf = configuration.config();
+var mongoConnectionString = "mongodb://"+conf.mongoHost+"/watchdog";
+var Agenda = require('agenda');
+var agenda = new Agenda({db: {address: mongoConnectionString, collection: "agendacollection"}});
+
+
 /* GET list of urls. */
 router.get('/list', function(req, res, next) {  
   console.log("LIST ALL TASK. ");
   task.listTasks(function(err,data){
-    if(err) res.json(err);
-    res.json(data);
+    if(err) res.json({err:err,data:null});
+    console.log(data);
+    res.json({err:null,data:data});
   })
 }); 
 
@@ -23,37 +31,52 @@ router.post('/add', function(req, res) {
     var crawl_frequency = req.body.crawl_frequency;
 
     task.addTask(url,crawl_frequency,function(err,data){
+      agendaName = 'crawl url '+url;
+      console.log("Task added! Setting agenda...",agendaName);      
+      
       //set crawl agenda
-        agenda.define('refresh url', function(job, done) { 
-          //refresh task
-          refreshTask(data.id,function(err,result){
-            console.log("END OF TASK REFRESH");
-            done();
-          });
+      agenda.define(agendaName, function(job, done) { 
+        //refresh task
+        refreshTask(data.id,function(err,result){
+          console.log("END OF TASK REFRESH");
+          done();
         });
+      });
 
-        agenda.on('ready', function() {
-          agenda.every('30 seconds', 'refresh url'); 
-          //FIXME: here you can add timezone: 'America/New_York', see doc.
-          agenda.start();
-        });
-
-      /*
-      refreshTask(id,function(err,result){
+      agenda.on('ready', function() {
+        agenda.every('30 seconds', agendaName); 
+        //FIXME: here you can add timezone: 'America/New_York', see doc.
+        agenda.start();
+      });
+      
+      refreshTask(data.id,function(err,result){
         console.log("END OF TASK REFRESH");
-        if(err) res.json(err);
-        res.json('');
+        if(err) res.json({err:err,data:null});
+        res.json({err:null,data:''});
       })
-      */
+      
     })
   
 });
 
 /* POST to Delete Task Service */
 router.delete('/delete/:id', function(req, res) {
+  var id = req.params.id;
   console.log("DELETE TASK: ");
-  task.deleteTask(req.params.id,function(result){
-    res.json(result);
+  //get task url
+  task.getTaskUrl(id,function(e,url){
+    //once we have url, trigger crawl
+    if(e){
+      res.json({err:'There was an error',data:null});
+    }else{
+      //delete task from db
+      task.deleteTask(req.params.id,function(result){
+        //remove agenda job
+        agenda.cancel({name: 'crawl url '+url}, function(err, numRemoved) {
+          res.json({err:null,data:result});
+        });
+      });
+    };
   });
 });
 
@@ -64,18 +87,19 @@ router.post('/refresh/:id', function(req, res) {
 
   var id = req.params.id;
   refreshTask(id,function(err,result){
-    if(err) res.json(err);
-    res.json('');
+    if(err) res.json({err:err,data:null});
+    res.json({err:null,data:result});
   })
 });
 
 var refreshTask = function(id,callback){
-//get task url, crawl it and save it.
+  console.log("RefreshTask...");
+  //get task url, crawl it and save it.
   task.getTaskUrl(id,function(e,url){
     //once we have url, trigger crawl
     if(e){
       console.log("Error:",e);
-      res.json();
+      res.json({err:e,data:null});
     }else{
       console.log("Crawling url:",url);
       //req.flash('url', url);//using session flash message to pass url.      
@@ -89,9 +113,10 @@ var refreshTask = function(id,callback){
           task.updateTaskDate(id,function(err,res){
             (err === null) ? callback(null,res):callback(err,null);
           });
-        })
+        });
       });
-    }
+    };
   });
 }
+
 module.exports = router;

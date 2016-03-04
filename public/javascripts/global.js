@@ -31,7 +31,8 @@ function populateTasksTable() {
   var tableContent = '';
 
   // jQuery AJAX call for JSON
-  $.getJSON('/tasks/list', function(data) {
+  $.getJSON('/tasks/list', function(response) {
+    data = response.data;
     if(data){
       // Stick our user data array into a tasklist variable in the global object
       taskListData = data;
@@ -53,6 +54,39 @@ function populateTasksTable() {
     }
   });
 };
+
+//function that given a url, populates it's crawl data.
+function populateCrawlsTable(url){
+  // Empty content string
+  var tableContent = '';
+
+  // jQuery AJAX call for JSON
+  $.getJSON('/crawls/list', function(response) {
+    data = response.data;
+    if(data){
+      // Stick our user data array into a tasklist variable in the global object
+      //taskListData = data;
+      crawlListData = data;
+
+      // For each item in our JSON, add a table row and cells to the content string
+      $.each(data, function(){
+        tableContent += '<tr>';
+        tableContent += '<td><a href="#" class="linkrefreshtask glyphicon glyphicon-refresh" rel="' + this._id + '"></a></td>';            
+        tableContent += '<td><a href="#" class="    " rel="' + this.url + '">' + this.url + '</a></td>';
+        tableContent += '<td> Every ' + this.crawl_frequency + ' day';
+        tableContent += (this.crawl_frequency >1 ? "s":""); //add s if >1 days
+        tableContent +='</td>';            
+        tableContent += '<td>' + this.last_crawl + '</td>';            
+        tableContent += '<td><a href="#" class="linkdeletetask glyphicon glyphicon-remove" rel="' + this._id + '"></a></td>';
+        tableContent += '</tr>';
+      });
+      // Inject the whole content string into our existing HTML table
+      $('#taskList table tbody').html(tableContent);
+    }
+  });
+
+};
+
 
 // Show User Info
 function showTaskInfo(event) {
@@ -105,30 +139,44 @@ function addTask(event) {
     }
 
     // If it is, compile all user info into one object
+    var url = $('#addTask form input#inputTaskUrl').val();
+    //if url doesn't start by http, append
+    if (!url.match(/^[a-zA-Z]+:\/\//))
+    { 
+      url = 'http://' + url;
+    }
+
     var newTask = {
-      'url': $('#addTask form input#inputTaskUrl').val(),
+      'url': url,
       'crawl_frequency': dropdownNumber
     };    
+    //FIXME add valid url check
 
-    // Use AJAX to post the object to our adduser service
-    $.ajax({
-      type: 'POST',
-      data: newTask,
-      url: '/tasks/add',
-      dataType: 'json'
-    }).done(function(response) {
-      // Check for successful (blank) response            
-      if (response === '') {
-        // Clear the form inputs
-        $('#addTask form input').val('');
-        // Update the table
-        populateTasksTable();
-      }
-      else {
-        // If something goes wrong, alert the error message that our service returned
-        alert('Error: ' + response.msg);
-      }
-    });
+    //check if valid url
+    if(isUrlValid(url)){
+      // Use AJAX to post the object to our adduser service
+      $.ajax({
+        type: 'POST',
+        data: newTask,
+        url: '/tasks/add',
+        dataType: 'json'
+      }).done(function(response) {
+        // Check for successful (blank) response            
+        if (response.err) {
+          // If something goes wrong, alert the error message that our service returned
+          alert('Error: ' + response.err);
+        }
+        else{
+          // Clear the form inputs
+          $('#addTask form input').val('');
+          // Update the table
+          populateTasksTable();
+        }
+      });
+    }else{
+      alert('Please enter a valid url');
+      return false;
+    }
   }
   else {
     // If errorCount is more than 0, error out
@@ -166,11 +214,13 @@ function deleteTask(event) {
     $.ajax({
       type: 'DELETE',
       url: '/tasks/delete/' + $(this).attr('rel')
-    }).done(function( response ) {
-      //FIXME: check for errors
-
-      // Update the table
-      populateTasksTable();
+    }).done(function(response) {
+      if(response.err){
+        alert("There was an error:",response.err);
+      }else{
+        // Update the table
+        populateTasksTable();  
+      }  
     });
   }
   else {
@@ -180,4 +230,9 @@ function deleteTask(event) {
   }
 
 };
+
+function isUrlValid(url) {
+    return /^(https?|s?ftp):\/\/(((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:)*@)?(((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5]))|((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?)(:\d*)?)(\/((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)+(\/(([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)*)*)?)?(\?((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|[\uE000-\uF8FF]|\/|\?)*)?(#((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|\/|\?)*)?$/i.test(url);
+}
+
 

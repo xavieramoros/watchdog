@@ -16,10 +16,21 @@ var saveCrawl = function(url,data,callback){
       "crawl_date": new Date(),
   }, function (err, doc) {
     result = (err === null) ? { msg: '' } : { msg:'error: ' + err };
-    callback(result)
+    callback(null, result);
   });
 }
 
+var listCrawls = function(url, callback){
+  var crawlcollection = db.get('crawlcollection');
+  //{sort:}
+  crawlcollection.find({url:url},{crawl_date:'desc'},function(err,docs){
+    if(err) throw err;
+    (err === null) ? callback(null,docs) : callback(err,null);
+  });
+}
+
+
 module.exports = {
-  saveCrawl:saveCrawl
+  saveCrawl:saveCrawl,
+  listCrawls:listCrawls
 }

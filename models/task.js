@@ -68,6 +68,7 @@ var updateTaskDate = function(id, callback){
 
 /*Function that give a task id returns it's url. */
 var getTaskUrl = function(id,callback){
+  console.log("getTaskUrl...");
   var taskcollection = db.get('taskcollection');
   var targetTask = id;
   console.log(targetTask);

@@ -9,7 +9,6 @@ var flash = require('connect-flash'); //used to send temp messages between redir
 var routes = require('./routes/index');
 var crawls = require('./controllers/crawls');
 var tasks = require('./controllers/tasks');  
-var Agenda = require('agenda');
 
 var app = express();
 
@@ -42,9 +41,6 @@ app.use('/tasks', tasks);
 
 var configuration = require('./config')
 conf = configuration.config();
-
-var mongoConnectionString = "mongodb://"+conf.mongoHost+"/watchdog";
-var agenda = new Agenda({db: {address: mongoConnectionString, collection: "jobCollectionName"}});
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

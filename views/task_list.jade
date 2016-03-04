@@ -1,0 +1,34 @@
+h2 Task List
+#taskList
+  table
+    thead
+      th Force crawl
+      th Url
+      th Crawl Frequency
+      th Last Crawl
+      th Delete 
+    tbody
+// /TASK LIST
+
+// ADD Task
+#addTask
+  h2 Add Task
+  form(role='form')
+    .form-group.col-xs-8
+      label(for='inputTaskUrl') Url:
+      input#inputTaskUrl.form-control(type='txt', placeholder='Url to check')
+    .form-group.col-xs-3
+        label(for='inputTaskCrawlFrequency') Crawl Frequency:
+          .dropdown
+            button#inputTaskCrawlFrequency.btn.btn-default.dropdown-toggle(type='button', data-toggle='dropdown', aria-haspopup='true', aria-expanded='true')
+              | Every day
+              span.caret
+            ul.dropdown-menu(aria-labelledby='inputTaskCrawlFrequency')
+              li
+                a(href='#') Every day
+              li
+                a(href='#') Every week
+              li
+                a(href='#') Every month
+  .row                  
+  button#btnAddTask.btn.btn-default(type='submit') Add Task   

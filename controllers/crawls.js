@@ -10,47 +10,93 @@ const https = require('https');
 
 
 //call the crawler
-/*
-router.get('/new', function(req, res) {
-  //this function gets url to crawl from flash:
-  url=JSON.stringify(req.flash('url'));
-  console.log("NEW CRAWL URL (GET):",url);
-  crawlUrl(url, function(data){
-    //once crawled, save data
-    crawl.saveCrawl(data,function(result){
-      res.json(result);
-    });
-  });
-});
-*/
-
 router.post('/new', function(req, res) {
+
   var url = req.body.url;
-  console.log("NEW CRAWL URL (POST):",url);
-
-  crawlUrl(url, function(data){
-    res.json(data);
-  });
+  console.log("NEW CRAWL url:",url);
+  //check if url status is 200.
+  checkUrlStatus(url,function(err, statusCode){
+    if(statusCode === 200){
+      crawlUrl(url, function(data){ 
+        res.json({err:null,data:data});
+      });  
+    }else{
+      res.json({err:err,data:null});
+    }
+  })
 });
-
 
 // Function to save a crawl 
 router.post('/save', function(req, res) {
   var url = req.body.url;
   var crawlData = req.body.data;
-
   console.log("SAVE CRAWL DATA:",crawlData);
 
-  crawl.saveCrawl(url,crawlData,function(result){
-    res.json(result);
+  crawl.saveCrawl(url,crawlData,function(err, result){
+    res.json({err:null,data:result});
   });
 });
 
+//list all crawl of a specific url
+router.post('/list', function(req, res) {
+  var url = req.body.url;
+  console.log("LIST CRAWL DATA:",url);
+  crawl.listCrawls(url, function(err,data){
+    console.log(data);
+    res.json({err:null,data:data});
+  });
+});
+
+/*Fucntion that given a url, returns it's status code*/
+var checkUrlStatus = function(url, callback){
+  console.log('checkUrlStatus...');
+  
+  var task = new URL(url);
+
+  var options = {
+    url:url,
+    method: 'GET', 
+    'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
+  };
+
+  request(options, function (error, response, body) {
+    if (error){
+      console.log("checkUrlStatus Error:",error);
+      callback(error,null);
+    }else{
+      console.log("Status code:",response.statusCode);
+      callback(null,response.statusCode);
+    }
+  });
+}
+
+/*
+  console.log("OPTIONS:",options);
+  if (task.protocol == 'https:') {
+    options.portNumber = '443';
+    var req = https.request(options, function(res) { 
+      console.log("http.request res:",res);
+      callback(null, res.statusCode);    
+    });
+  } else {
+    options.portNumber = '80';
+    request(url, function (error, response, body) {
+    if (!error && response.statusCode == 200) {
+      console.log(body) // Show the HTML for the Google homepage. 
+    }
+
+    var req = request(options, function(res) { 
+      console.log("http.request res:",res);
+      callback(null, res.statusCode);    
+    });
+  }
+}
+*/
+
 //function that given a url get parses it's html
-var crawlUrl = function(targetUrl, callback){
+var crawlUrl = function(targetUrl,callback){
   //need to input the URL (task) to crawl
-  console.log("CRAWL URL");
-  var targetUrl = 'https://www.npmjs.com/package/scrape-js';
+  console.log("CRAWL URL:",targetUrl);
   var task = new URL(targetUrl);
   var apikey = 'ed0940c1684860c3bdad3d2d2743c4f631d5fe59';
   var url = 'http://api.phantomjscloud.com/single/browser/v1/'+apikey+'/?targetContent=&requestType=raw&targetUrl='+targetUrl+'+&resourceUrlBlacklist=[]&loadImages=checked';
@@ -61,14 +107,13 @@ var crawlUrl = function(targetUrl, callback){
   request(url, function(error, response, body) { 
     bodyParsed = parseBody(body);
     console.log('BODY PARSED:',bodyParsed);
-
-    //req.end();
     callback(null,bodyParsed);
   });
 }
 
 var parseBody = function(body){
   console.log('PARSING BODY');
+  console.log(body);
   var arr = [];
   var $ = cheerio.load(body);
   var title = $("title").text();
@@ -85,7 +130,6 @@ var parseBody = function(body){
     'robots':robots,
     'canonical':canonical    
   };
-
   return dataParsed;
 }
 
