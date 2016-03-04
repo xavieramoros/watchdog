@@ -1,23 +1,35 @@
-// USER INFO
-#urlInfo
-  h2 Crawl History
-  p Dashboard
-    strong Url:
-    |  <span id='urlUrl'></span>
-    br
-    strong Title:
-    |  <span id='urlTitle'></span>
-    br
-    strong LastCrawl:
-    |  <span id='urlLastCrawl'></span>
-    br
+h2 Task List
+#taskList
+  table
+    thead
+      th Force crawl
+      th Url
+      th Crawl Frequency
+      th Last Crawl
+      th Delete 
+    tbody
+// /TASK LIST
 
+
+// USER INFO
+#crawlInfo
+  h2 Crawl info
+  #crawlStatus
+  p Status
+
+  h3 Crawl History
   #crawlList
     table
       thead
-        th Force crawl
-        th Url
-        th Crawl Frequency
+        th Crawl Date
+        th Title
+        th Meta Description
+        th Robots
+        th Canonical
+        th Mobile Alternate
+        th Keywords   
+        th Amp Alternate
 
 
+      tbody
 // /USER INFO

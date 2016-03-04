@@ -11,10 +11,14 @@ $(document).ready(function() {
   $('#btnAddTask').on('click', addTask);
   $('#taskList table tbody').on('click', 'td a.linkdeletetask', deleteTask);
   $('#taskList table tbody').on('click', 'td a.linkrefreshtask', refreshTask);    
-  /*
-  // Show task details.
-  $('#userList table tbody').on('click', 'td a.linkshowuser', showUserInfo);
+  // Show task crawls.
+  $('#taskList table tbody').on('click', 'td a.linkshowcrawls', populateCrawlsTable);
+  
+  /*$('.linkshowcrawls').click(function(event){
+    refreshTask(event);
+  });
   */
+  //on('click', 'td a.linkshowcrawls', populateCrawlsTable);
 
   $(".dropdown-menu li a").click(function(){
     var selText = $(this).text();
@@ -41,7 +45,7 @@ function populateTasksTable() {
       $.each(data, function(){
         tableContent += '<tr>';
         tableContent += '<td><a href="#" class="linkrefreshtask glyphicon glyphicon-refresh" rel="' + this._id + '"></a></td>';            
-        tableContent += '<td><a href="#" class="    " rel="' + this.url + '">' + this.url + '</a></td>';
+        tableContent += '<td><a href="#" class="linkshowcrawls" rel="' + this.url + '">' + this.url + '</a></td>';
         tableContent += '<td> Every ' + this.crawl_frequency + ' day';
         tableContent += (this.crawl_frequency >1 ? "s":""); //add s if >1 days
         tableContent +='</td>';            
@@ -52,16 +56,24 @@ function populateTasksTable() {
       // Inject the whole content string into our existing HTML table
       $('#taskList table tbody').html(tableContent);
     }
+
+    //connect links
+    $('#crawlList table tbody').on('click', 'td a.linkshowcrawls', populateCrawlsTable);
+
   });
 };
 
 //function that given a url, populates it's crawl data.
-function populateCrawlsTable(url){
+function populateCrawlsTable(event){
+  console.log("populateCrawlsTable called!!!");
+  
+  //var thisUrl = $(this).attr('rel');
+  var url = 'http://www.wordpress.com';
   // Empty content string
   var tableContent = '';
 
   // jQuery AJAX call for JSON
-  $.getJSON('/crawls/list', function(response) {
+  $.post('/crawls/list', {url:url},function(response) {
     data = response.data;
     if(data){
       // Stick our user data array into a tasklist variable in the global object
@@ -71,17 +83,13 @@ function populateCrawlsTable(url){
       // For each item in our JSON, add a table row and cells to the content string
       $.each(data, function(){
         tableContent += '<tr>';
-        tableContent += '<td><a href="#" class="linkrefreshtask glyphicon glyphicon-refresh" rel="' + this._id + '"></a></td>';            
-        tableContent += '<td><a href="#" class="    " rel="' + this.url + '">' + this.url + '</a></td>';
-        tableContent += '<td> Every ' + this.crawl_frequency + ' day';
-        tableContent += (this.crawl_frequency >1 ? "s":""); //add s if >1 days
-        tableContent +='</td>';            
-        tableContent += '<td>' + this.last_crawl + '</td>';            
-        tableContent += '<td><a href="#" class="linkdeletetask glyphicon glyphicon-remove" rel="' + this._id + '"></a></td>';
+        tableContent += '<td>'+this.crawl_date+'</td>';            
+        tableContent += '<td>'+this.title+'</td>';
+        tableContent += '<td>'+this.meta_description+'</td>';            
         tableContent += '</tr>';
       });
       // Inject the whole content string into our existing HTML table
-      $('#taskList table tbody').html(tableContent);
+      $('#crawlList table tbody').html(tableContent);
     }
   });
 
@@ -89,6 +97,7 @@ function populateCrawlsTable(url){
 
 
 // Show User Info
+/*
 function showTaskInfo(event) {
 
   // Prevent Link from Firing
@@ -108,6 +117,7 @@ function showTaskInfo(event) {
   $('#urlTitle').text("Title test");//(thisTaskObject.age);
   $('#urlLastCrawl').text("Last crawl test");//(thisTaskObject.gender);
 }
+*/
 
 // Add Task
 function addTask(event) {
