@@ -6,7 +6,7 @@ var db = monk('localhost:27017/watchdog');
 var debug = require('debug')('monk')
 
 /*Function that adds task to taskcollection
-Returns id if success
+Returns data: id if success and url
 */
 var addTask = function(url,freq,callback){
   var taskcollection = db.get('taskcollection');  
@@ -17,7 +17,11 @@ var addTask = function(url,freq,callback){
       "last_crawl": " "
   }, function (err, doc) {
     if(err) throw err;
-    (err === null) ? callback(null,doc._id) : callback(err,null);
+    var data = {
+      id:doc._id,
+      url:url
+    };
+    (err === null) ? callback(null,data) : callback(err,null);
   });
 }
 
@@ -63,7 +67,7 @@ var updateTaskDate = function(id, callback){
 }
 
 /*Function that give a task id returns it's url. */
-var getTargetUrl = function(id,callback){
+var getTaskUrl = function(id,callback){
   var taskcollection = db.get('taskcollection');
   var targetTask = id;
   console.log(targetTask);
@@ -83,6 +87,6 @@ module.exports = {
   addTask:addTask,
   listTasks:listTasks,
   deleteTask:deleteTask,
-  getTargetUrl:getTargetUrl,
+  getTaskUrl:getTaskUrl,
   updateTaskDate:updateTaskDate
 };

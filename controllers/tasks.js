@@ -22,14 +22,31 @@ router.post('/add', function(req, res) {
     var url = req.body.url;
     var crawl_frequency = req.body.crawl_frequency;
 
-    task.addTask(url,crawl_frequency,function(err,id){
+    task.addTask(url,crawl_frequency,function(err,data){
       //set crawl agenda
+        agenda.define('refresh url', function(job, done) { 
+          //refresh task
+          refreshTask(data.id,function(err,result){
+            console.log("END OF TASK REFRESH");
+            done();
+          });
+        });
+
+        agenda.on('ready', function() {
+          agenda.every('30 seconds', 'refresh url'); 
+          //FIXME: here you can add timezone: 'America/New_York', see doc.
+          agenda.start();
+        });
+
+      /*
       refreshTask(id,function(err,result){
         console.log("END OF TASK REFRESH");
         if(err) res.json(err);
         res.json('');
       })
+      */
     })
+  
 });
 
 /* POST to Delete Task Service */
@@ -54,7 +71,7 @@ router.post('/refresh/:id', function(req, res) {
 
 var refreshTask = function(id,callback){
 //get task url, crawl it and save it.
-  task.getTargetUrl(id,function(e,url){
+  task.getTaskUrl(id,function(e,url){
     //once we have url, trigger crawl
     if(e){
       console.log("Error:",e);
