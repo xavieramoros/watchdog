@@ -5,13 +5,6 @@ var crawls = require('./../controllers/crawls')
 var router = express.Router();
 var request = require('request');
 
-var configuration = require('./../config')
-conf = configuration.config();
-var mongoConnectionString = "mongodb://"+conf.mongoHost+"/watchdog";
-var Agenda = require('agenda');
-var agenda = new Agenda({db: {address: mongoConnectionString, collection: "agendacollection"}});
-
-
 /* GET list of urls. */
 router.get('/list', function(req, res, next) {  
   console.log("LIST ALL TASK. ");
@@ -39,15 +32,14 @@ router.post('/add', function(req, res) {
         //refresh task
         refreshTask(data.id,function(err,result){
           console.log("END OF TASK REFRESH");
-          done();
+          done(); //to unlock the agenda job = the job is done
         });
       });
 
-      agenda.on('ready', function() {
-        agenda.every('30 seconds', agendaName); 
+      //agenda.on('ready', function() {
+      agenda.every('30 seconds', agendaName); 
         //FIXME: here you can add timezone: 'America/New_York', see doc.
-        agenda.start();
-      });
+      //});
       
       refreshTask(data.id,function(err,result){
         console.log("END OF TASK REFRESH");
@@ -92,6 +84,7 @@ router.post('/refresh/:id', function(req, res) {
   })
 });
 
+//function that do a crawl and then saves it.
 var refreshTask = function(id,callback){
   console.log("RefreshTask...");
   //get task url, crawl it and save it.

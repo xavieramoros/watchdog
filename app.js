@@ -42,6 +42,15 @@ app.use('/tasks', tasks);
 var configuration = require('./config')
 conf = configuration.config();
 
+/*var configuration = require('./../config')
+conf = configuration.config();
+*/
+var mongoConnectionString = "mongodb://"+conf.mongoHost+"/watchdog";
+var Agenda = require('agenda');
+agenda = new Agenda({db: {address: mongoConnectionString, collection: "agendacollection"}});
+agenda.start();
+
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   var err = new Error('Not Found');
