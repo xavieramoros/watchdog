@@ -11,10 +11,15 @@ var crawls = require('./controllers/crawls');
 var tasks = require('./controllers/tasks');  
 
 var app = express();
+//app.listen(process.env.OPENSHIFT_NODEJS_PORT || 8080);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
+
+app.set('port', process.env.OPENSHIFT_NODEJS_PORT || process.env.PORT || 3000);
+app.set('ip', process.env.OPENSHIFT_NODEJS_IP || "127.0.0.1");
+
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
@@ -45,7 +50,8 @@ conf = configuration.config();
 /*var configuration = require('./../config')
 conf = configuration.config();
 */
-var mongoConnectionString = "mongodb://"+conf.mongoHost+"/watchdog";
+  
+var mongoConnectionString = "mongodb://"+conf.mongoHost+":"+conf.mongoHost+"/watchdog";
 var Agenda = require('agenda');
 agenda = new Agenda({db: {address: mongoConnectionString, collection: "agendacollection"}});
 agenda.start();
