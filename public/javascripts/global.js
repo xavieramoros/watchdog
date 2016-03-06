@@ -50,6 +50,7 @@ function populateTasksTable() {
         tableContent += (this.crawl_frequency >1 ? "s":""); //add s if >1 days
         tableContent +='</td>';            
         tableContent += '<td>' + this.last_crawl + '</td>';            
+        tableContent += '<td>' + this.status + '</td>';            
         tableContent += '<td><a href="#" class="linkdeletetask glyphicon glyphicon-remove" rel="' + this._id + '"></a></td>';
         tableContent += '</tr>';
       });
@@ -64,11 +65,9 @@ function populateTasksTable() {
 };
 
 //function that given a url, populates it's crawl data.
-function populateCrawlsTable(event){
-  console.log("populateCrawlsTable called!!!");
-  
-  //var thisUrl = $(this).attr('rel');
-  var url = 'http://www.wordpress.com';
+function populateCrawlsTable(event){  
+  var url = $(this).attr('rel');
+
   // Empty content string
   var tableContent = '';
 
@@ -170,11 +169,18 @@ function addTask(event) {
         data: newTask,
         url: '/tasks/add',
         dataType: 'json'
-      }).done(function(response) {
+      }).done(function(err,res) {
         // Check for successful (blank) response            
-        if (response.err) {
-          // If something goes wrong, alert the error message that our service returned
-          alert('Error: ' + response.err);
+        if (err) {
+          console.log(err);
+          console.log(err.code);
+          if(err.code === 'ENOTFOUND'){
+            alert('That url seems unreachable');  
+          }else{
+            // If something goes wrong, alert the error message that our service returned
+            alert('Error: ' + err);  
+          }
+          
         }
         else{
           // Clear the form inputs

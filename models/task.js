@@ -45,6 +45,16 @@ var deleteTask = function(id,callback){
   });
 }
 
+var saveStatus = function(uid,statusObject,callback){
+  var taskcollection = db.get('taskcollection');
+  taskcollection.findAndModify(
+    { "_id": id },
+    { "$set": {"status": statusObject}}, 
+    function (err, doc) {
+      (err === null) ? callback(null,doc):callback(err,null);
+  });
+}
+
 var updateTaskDate = function(id, callback){
   var taskcollection = db.get('taskcollection');
   // Submit to the DB

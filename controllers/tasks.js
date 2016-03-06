@@ -4,6 +4,8 @@ var crawl = require('./../models/crawl')
 var crawls = require('./../controllers/crawls')
 var router = express.Router();
 var request = require('request');
+var async = require('async');
+var utils = require('./utils');
 
 /* GET list of urls. */
 router.get('/list', function(req, res, next) {  
@@ -22,32 +24,42 @@ router.post('/add', function(req, res) {
 
     var url = req.body.url;
     var crawl_frequency = req.body.crawl_frequency;
+    var status = {all:'ok'};
 
-    task.addTask(url,crawl_frequency,function(err,data){
-      agendaName = 'crawl url '+url;
-      console.log("Task added! Setting agenda...",agendaName);      
-      
-      //set crawl agenda
-      agenda.define(agendaName, function(job, done) { 
-        //refresh task
-        refreshTask(data.id,function(err,result){
-          console.log("END OF TASK REFRESH");
-          done(); //to unlock the agenda job = the job is done
-        });
-      });
+    //check first if url exists.
+    utils.checkUrlStatus(url,function(err, statusCode){  
+      if(statusCode === 200){
+        task.addTask(url,crawl_frequency,function(err,data){
+          agendaName = 'crawl url '+url;
+          console.log("Task added! Setting agenda...",agendaName);      
+          
+          //set crawl agenda
+          agenda.define(agendaName, function(job, done) { 
+            //refresh task
+            refreshTask(data.id,function(err,result){
+              console.log("END OF TASK REFRESH");
+              res.json({err:null,data:''});
+              done(); //to unlock the agenda job = the job is done
+            });
+          });
 
-      //agenda.on('ready', function() {
-      agenda.every('30 seconds', agendaName); 
-        //FIXME: here you can add timezone: 'America/New_York', see doc.
-      //});
-      
-      refreshTask(data.id,function(err,result){
-        console.log("END OF TASK REFRESH");
-        if(err) res.json({err:err,data:null});
-        res.json({err:null,data:''});
-      })
-      
-    })
+          //agenda.on('ready', function() {
+          agenda.every('30 seconds', agendaName); 
+            //FIXME: here you can add timezone: 'America/New_York', see doc.
+          //});
+          
+          /*
+          refreshTask(data.id,function(err,result){
+            console.log("END OF TASK REFRESH");
+            if(err) res.json({err:err,data:null});
+            res.json({err:null,data:''});
+          })*/
+          
+        })
+      }else{
+        res.json({err:err,data:null});
+      }
+    });
   
 });
 
@@ -84,7 +96,7 @@ router.post('/refresh/:id', function(req, res) {
   })
 });
 
-//function that do a crawl and then saves it.
+//function that do a crawl and then saves it and updates the status.
 var refreshTask = function(id,callback){
   console.log("RefreshTask...");
   //get task url, crawl it and save it.
@@ -99,17 +111,106 @@ var refreshTask = function(id,callback){
       //res.redirect('/crawls/url');
       //other way to do it instead of res.redirect('/crawls/url');
       request.post(conf.host+'/crawls/new',{form:{url:url}},function(err, response, body){
-        console.log(response.body);
-        //save crawl
-        request.post(conf.host+'/crawls/save',{form:{url:url,data:response.body}},function(err, response, body){
-          //update crawl date        
-          task.updateTaskDate(id,function(err,res){
-            (err === null) ? callback(null,res):callback(err,null);
-          });
+        newCrawlData = response.body.data;
+        console.log('newCrawlData:',newCrawlData);
+        async.series([
+          //1-get previous crawl and compare to get task status
+          function(callback){
+            request.post(conf.host+'/crawls/last',{form:{url:url,data:newCrawlData}},function(err, response, body){
+              //call update status with oldCrawlData and newCrawlData.   
+              console.log('/crawls/last done!');
+
+              if(response && response.body.data){  
+                oldCrawlData = response.body.data;
+                updateStatus(id,newCrawlData,oldCrawlData,callback);  
+              }else{
+                callback;
+              }
+            });
+          },
+          //2-save current crawlasync.parallel([
+          function(callback){
+            console.log('Then /crawls/save');
+            request.post(conf.host+'/crawls/save',{form:{url:url,data:newCrawlData}},function(err, response, body){
+              //update crawl date        
+              task.updateTaskDate(id,function(err,res){
+                (err === null) ? callback(null,res):callback(err,null);
+              });
+            });
+          }
+        ], function(err, results){
+          console.log("Both async seris finished, results:",results);
+          callback(err,results);
         });
       });
     };
   });
 }
+
+var updateStatus = function(id,newCrawlData,oldCrawlData,callback){
+  console.log('UPDATE STATUS...');
+  console.log('oldCrawlData:',oldCrawlData);
+  statusObject = {};
+  for (var key in newCrawlData) {
+    if (newCrawlData.hasOwnProperty(key)) { //to make sure that the key you get is an actual property of an object, and doesn't come from the prototype
+      //if old array has this property and it changed:
+      if(oldCrawlData.hasOwnProperty(key) && newCrawlData[key]!==oldCrawlData[key]){
+        //update status object
+        var alert_level; //low, medium, high
+        var message;
+        switch(key){
+          case 'title':
+            alert_level = 'low';
+            message = 'Title has changed from "'+oldCrawlData[key]+'" to "'+newCrawlData[key]+'"';
+            break;
+          case 'meta_description':
+            alert_level = 'low';
+            message = 'Meta description has changed from "'+oldCrawlData[key]+'" to "'+newCrawlData[key]+'"';
+            break;
+          case 'h1':
+            alert_level = 'low';
+            message = 'H1 has changed from "'+oldCrawlData[key]+'" to "'+newCrawlData[key]+'"';            
+            break;
+          case 'robots':
+            alert_level = 'high';  
+            message = 'Robots has changed from "'+oldCrawlData[key]+'" to "'+newCrawlData[key]+'"';                          
+            break;
+          case 'canonical':
+            alert_level = 'high'; 
+            message = 'Canonical has changed from "'+oldCrawlData[key]+'" to "'+newCrawlData[key]+'"';                                         
+            break;
+          case 'mobile_alternate':
+            alert_level = 'high';    
+            message = 'Mobile Alternate has changed from "'+oldCrawlData[key]+'" to "'+newCrawlData[key]+'"';                                      
+            break;
+          case 'keywords':
+            alert_level = 'low';    
+            message = 'Keywords has changed from "'+oldCrawlData[key]+'" to "'+newCrawlData[key]+'"';                                      
+            break;
+          case 'amp_alternate':      
+            alert_level = 'high';  
+            message = 'Amp Alernate has changed from "'+oldCrawlData[key]+'" to "'+newCrawlData[key]+'"';                                      
+            break;
+        };
+
+        statusObject[key]={
+          alert_level: alert_level,
+          old_value: oldCrawlData[key],
+          new_value: newCrawlData[key],
+          message:message
+        }      
+      }
+    }
+  }//end of loop through newCrawlData properties.
+  console.log('Status:',statusObject);
+  
+  //save statusObject.
+  task.saveStatus(id,statusObject,function(err,res){
+    callback();  
+  })
+  //save status
+}
+
+var updateStatusObject = function(){}
 
 module.exports = router;

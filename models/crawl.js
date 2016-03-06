@@ -13,6 +13,12 @@ var saveCrawl = function(url,data,callback){
       "url": url,
       "title" : data.title,
       "meta_description": data.meta_description,
+     "h1":data.h1,
+     "robots":data.robots,
+     "canonical":data.canonical,
+     "mobile_alternate":data.mobile_alternate,
+     "keywords":data.keywords,
+     "amp_alternate":data.amp_alternate,
       "crawl_date": new Date(),
   }, function (err, doc) {
     result = (err === null) ? { msg: '' } : { msg:'error: ' + err };
@@ -20,17 +26,28 @@ var saveCrawl = function(url,data,callback){
   });
 }
 
-var listCrawls = function(url, callback){
+//function to retrieved the previously saved crawl.
+var lastCrawl = function(url, callback){
   var crawlcollection = db.get('crawlcollection');
   //{sort:}
-  crawlcollection.find({url:url},{crawl_date:'desc'},function(err,docs){
+  crawlcollection.find({url:url},{sort:{crawl_date:-1},limit:1},function(err,docs){
+    if(err) callback(err,null);
     if(err) throw err;
     (err === null) ? callback(null,docs) : callback(err,null);
   });
 }
 
+var listCrawls = function(url,callback){
+  var crawlcollection = db.get('crawlcollection');
+  crawlcollection.find({url:url},{crawl_date:'desc'},function(err,docs){
+    if(err) throw err;
+    (err === null) ? callback(null,docs) : callback(err,null);
+  });
+
+}
 
 module.exports = {
   saveCrawl:saveCrawl,
-  listCrawls:listCrawls
+  listCrawls:listCrawls,
+  lastCrawl:lastCrawl
 }

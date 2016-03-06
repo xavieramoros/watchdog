@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
-var crawl = require('./../models/crawl')
+var crawl = require('./../models/crawl');
+var utils = require('./utils');
 var flash = require('connect-flash'); //used to send temp messages between redirects
 var http = require('http');
 var request = require("request");
@@ -15,7 +16,7 @@ router.post('/new', function(req, res) {
   var url = req.body.url;
   console.log("NEW CRAWL url:",url);
   //check if url status is 200.
-  checkUrlStatus(url,function(err, statusCode){
+  utils.checkUrlStatus(url,function(err, statusCode){
     if(statusCode === 200){
       crawlUrl(url, function(data){ 
         res.json({err:null,data:data});
@@ -30,6 +31,22 @@ router.post('/new', function(req, res) {
 router.post('/save', function(req, res) {
   var url = req.body.url;
   var crawlData = req.body.data;
+
+  crawlData = {
+     'title':crawlData.title,
+     'meta_description':crawlData.meta_description,
+     'h1':crawlData.headingOne,
+     'robots':crawlData.robots,
+     'canonical':crawlData.canonical,
+     'mobile_alternate':crawlData.mobile_alternate,
+     'keywords':crawlData.keywords,
+     'amp_alternate':crawlData.amp_alternate
+  }
+
+/*'mobile_alternate':
+     'keywords':
+     'amp_alternate':*/
+
   console.log("SAVE CRAWL DATA:",crawlData);
 
   crawl.saveCrawl(url,crawlData,function(err, result){
@@ -47,28 +64,17 @@ router.post('/list', function(req, res) {
   });
 });
 
-/*Fucntion that given a url, returns it's status code*/
-var checkUrlStatus = function(url, callback){
-  console.log('checkUrlStatus...');
-  
-  var task = new URL(url);
-
-  var options = {
-    url:url,
-    method: 'GET', 
-    'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
-  };
-
-  request(options, function (error, response, body) {
-    if (error){
-      console.log("checkUrlStatus Error:",error);
-      callback(error,null);
-    }else{
-      console.log("Status code:",response.statusCode);
-      callback(null,response.statusCode);
-    }
+//Get previous crawl of a specific url. could be that there is only one saved (first time).
+router.post('/last', function(req, res) {
+  var url = req.body.url;
+  console.log("GET PREVIOUS CRAWL DATA:",url);
+  crawl.lastCrawl(url, function(err,data){
+    console.log(data);
+    res.json({err:null,data:data});
   });
-}
+});
+
+
 
 /*
   console.log("OPTIONS:",options);
@@ -121,6 +127,9 @@ var parseBody = function(body){
   var robots = $('meta[name=robots]').attr("content");
   var headingOne = $('body > div.container.content > div.sidebar > div.autoselect-wrapper.npm-install.icon-download > p').html();
   var canonical = $('link[rel=canonical]').attr("href");
+  var mobile_alternate = null;
+  var keywords = null;
+  var amp_alternate = null;     
   //arr.push(httpResponse,headingOne,title,description,robots,canonical);
   //arr.push(headingOne,title,description,robots,canonical);
   var dataParsed = {
@@ -128,7 +137,10 @@ var parseBody = function(body){
     'title':title,
     'meta_description':description,
     'robots':robots,
-    'canonical':canonical    
+    'canonical':canonical,
+    'mobile_alternate':mobile_alternate,
+    'amp_alternate':amp_alternate,
+    'keywords':keywords   
   };
   return dataParsed;
 }
