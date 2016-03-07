@@ -48,7 +48,7 @@ conf = configuration.config();
   
 console.log("***Starting app. conf.env:",conf.env);
 
-var mongoConnectionString = "mongodb://"+conf.mongoHost+":"+conf.mongoHost+"/"+conf.mongoDb;
+var mongoConnectionString = "mongodb://"+conf.mongoHost+":"+conf.mongoPort+"/"+conf.mongoDb;
 var Agenda = require('agenda');
 agenda = new Agenda({db: {address: mongoConnectionString, collection: "agendacollection"}});
 agenda.start();
