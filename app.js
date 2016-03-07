@@ -18,7 +18,7 @@ app.set('view engine', 'jade');
 
 //app.set('port', process.env.OPENSHIFT_NODEJS_PORT || process.env.PORT || 3000);
 //app.set('ip', process.env.OPENSHIFT_NODEJS_IP || "127.0.0.1");
-app.listen(conf.port, conf.ip);
+//app.listen(conf.port, conf.ip);
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
@@ -45,11 +45,9 @@ app.use('/tasks', tasks);
 
 var configuration = require('./config')
 conf = configuration.config();
-
-/*var configuration = require('./../config')
-conf = configuration.config();
-*/
   
+console.log("***Starting app. conf.env:",conf.env);
+
 var mongoConnectionString = "mongodb://"+conf.mongoHost+":"+conf.mongoHost+"/"+conf.mongoDb;
 var Agenda = require('agenda');
 agenda = new Agenda({db: {address: mongoConnectionString, collection: "agendacollection"}});

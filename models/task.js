@@ -2,7 +2,11 @@
 //MongoDB settings:
 var mongo = require('mongodb');
 var monk = require('monk');
-var db = monk(conf.mongoHost+":"+conf.mongoHost+"/"+conf.mongoDb);
+
+var configuration = require('./../config')
+conf = configuration.config();
+
+var db = monk(conf.mongoHost+":"+conf.mongoPort+"/"+conf.mongoDb);
 var debug = require('debug')('monk');
 
 /*Function that adds task to taskcollection
