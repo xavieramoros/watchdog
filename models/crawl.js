@@ -1,7 +1,7 @@
 //MongoDB settings:
 var mongo = require('mongodb');
 var monk = require('monk');
-var db = monk('localhost:27017/watchdog');
+var db = monk(conf.mongoHost+":"+conf.mongoHost+"/"+conf.mongoDb);
 
 /*Add task to taskcollection*/
 

@@ -2,8 +2,8 @@
 //MongoDB settings:
 var mongo = require('mongodb');
 var monk = require('monk');
-var db = monk('localhost:27017/watchdog');
-var debug = require('debug')('monk')
+var db = monk(conf.mongoHost+":"+conf.mongoHost+"/"+conf.mongoDb);
+var debug = require('debug')('monk');
 
 /*Function that adds task to taskcollection
 Returns data: id if success and url
