@@ -3,9 +3,9 @@ var path = require('path');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
-var session = require('express-session');
+//var session = require('express-session');
 var bodyParser = require('body-parser');
-var flash = require('connect-flash'); //used to send temp messages between redirects
+//var flash = require('connect-flash'); //used to send temp messages between redirects
 var routes = require('./routes/index');
 var crawls = require('./controllers/crawls');
 var tasks = require('./controllers/tasks');  
@@ -30,9 +30,9 @@ app.use(bodyParser.urlencoded({ extended: false })); //  extended: true
 app.use(express.static(path.join(__dirname, 'public')));
 
 //To use flash, first setup sessions as usual by enabling cookieParser and session middleware
-app.use(cookieParser('watchdog pass'));
-app.use(session({cookie: { maxAge: 60000 }}));
-app.use(flash());
+//app.use(cookieParser('watchdog pass'));
+//app.use(session({cookie: { maxAge: 60000 }}));
+//app.use(flash());
 
 // Make our db accessible to our router, wrapping database object into every request //FIXME
 app.use(function(req,res,next){
