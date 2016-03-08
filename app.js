@@ -48,9 +48,9 @@ conf = configuration.config();
   
 console.log("***Starting app. conf.env:",conf.env);
 
-var Agenda = require('agenda');
-agenda = new Agenda({db: {address: conf.mongoConnectionString, collection: "agendacollection"}});
-agenda.start();
+//var Agenda = require('agenda');
+//agenda = new Agenda({db: {address: conf.mongoConnectionString, collection: "agendacollection"}});
+//agenda.start();
 
 
 // catch 404 and forward to error handler
