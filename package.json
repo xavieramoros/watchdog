@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node ./bin/www"
   },
-  "main": "app.js",
+  "main": "./bin/www",
   "dependencies": {
     "agenda": "^0.8.0",
     "async": "^1.5.2",
