@@ -58,9 +58,13 @@ conf = configuration.config();
 //DEBUGING OPENSHIFT
 console.log("***Starting app. conf.env:",conf.env);
 
-var Agenda = require('agenda');
-agenda = new Agenda({db: {address: conf.mongoConnectionString, collection: "agendacollection"}});
-agenda.start();
+try{
+  var Agenda = require('agenda');
+  agenda = new Agenda({db: {address: conf.mongoConnectionString, collection: "agendacollection", options:{uri_decode_auth:true}}});
+  agenda.start();
+}catch(e){
+  console.log("Error connecting Agenda:",e);
+}
 
 
 // catch 404 and forward to error handler
