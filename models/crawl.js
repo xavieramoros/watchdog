@@ -4,7 +4,7 @@ var monk = require('monk');
 var configuration = require('./../config')
 conf = configuration.config();
 
-var db = monk(conf.mongoHost+":"+conf.mongoPort+"/"+conf.mongoDb);
+var db = monk(conf.mongoConnectionString);
 
 /*Add task to taskcollection*/
 
