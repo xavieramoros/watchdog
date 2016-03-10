@@ -12,13 +12,12 @@ const https = require('https');
 
 //call the crawler
 router.post('/new', function(req, res) {
-
   var url = req.body.url;
   console.log("NEW CRAWL url:",url);
   //check if url status is 200.
   utils.checkUrlStatus(url,function(err, statusCode){
     if(statusCode === 200){
-      crawlUrl(url, function(data){ 
+      crawlUrl(url, function(err,data){ 
         res.json({err:null,data:data});
       });  
     }else{
@@ -105,21 +104,47 @@ var crawlUrl = function(targetUrl,callback){
   console.log("CRAWL URL:",targetUrl);
   var task = new URL(targetUrl);
   var apikey = 'ed0940c1684860c3bdad3d2d2743c4f631d5fe59';
-  var url = 'http://api.phantomjscloud.com/single/browser/v1/'+apikey+'/?targetContent=&requestType=raw&targetUrl='+targetUrl+'+&resourceUrlBlacklist=[]&loadImages=checked';
-  //var url = 'http://api.phantomjscloud.com/single/browser/v2/'+apikey+'/?targetContent=&requestType=raw&targetUrl='+targetUrl+'+&resourceUrlBlacklist=[]&loadImages=checked';
-
+  
   var bodyParsed;
+  var phantomJsCloudUrl = 'http://api.phantomjscloud.com/api/browser/v2/'+apikey;
+  
+  
+  var body = {
+    url:targetUrl,
+    outputAsJson:false,
+    renderType:'html'
+  }
+  
+  /*
+  var options = {
+    url:phantomJsCloudUrl, 
+    method: "POST",
+    json: true,
+    headers: {
+        "content-type": "application/json",
+    },
+    body: body
+  };
+  
+  console.log("options:",options);
+  request(options,function(error, response, body) { 
+  */
 
-  request(url, function(error, response, body) { 
-    bodyParsed = parseBody(body);
-    console.log('BODY PARSED:',bodyParsed);
-    callback(null,bodyParsed);
+  url = 'http://api.phantomjscloud.com/api/browser/v2/'+apikey +'/?request='+encodeURIComponent(JSON.stringify(body));
+  console.log('URL:',url); 
+  request(url,function(error, response, body) {     
+    if(body.statusCode && body.statusCode === '404'){
+      callback(body.error,null);
+    }else{
+      bodyParsed = parseBody(body);
+      console.log('BODY PARSED:',bodyParsed);
+      callback(null,bodyParsed);
+    }
   });
 }
 
 var parseBody = function(body){
-  console.log('PARSING BODY');
-  console.log(body);
+  console.log('PARSING BODY...');
   var arr = [];
   var $ = cheerio.load(body);
   var title = $("title").text();

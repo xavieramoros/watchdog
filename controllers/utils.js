@@ -3,7 +3,7 @@ var request = require("request");
 
 /*Fucntion that given a url, returns it's status code*/
 var checkUrlStatus = function(url, callback){
-  console.log('checkUrlStatus...');
+  console.log('CHECKING URL STATUS...');
   
   var task = new URL(url);
 

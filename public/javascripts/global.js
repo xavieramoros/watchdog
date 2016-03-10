@@ -178,9 +178,8 @@ function addTask(event) {
             alert('That url seems unreachable');  
           }else{
             // If something goes wrong, alert the error message that our service returned
-            alert('Error: ' + err);  
+            alert('Error: ',JSON.parse(err));  
           }
-          
         }
         else{
           // Clear the form inputs
@@ -202,6 +201,7 @@ function addTask(event) {
 };
 //Refresh Task
 function refreshTask(event){
+  console.log("refreshTask...");
   event.preventDefault();
   $.ajax({
     type: 'POST',

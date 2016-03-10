@@ -31,9 +31,12 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false })); //  extended: true
 
 var port = normalizePort(conf.port);
-app.set('port', port);
-app.set('ip',conf.ip);
-
+console.log("DEBUG!!!:",process.env.PORT);
+if(conf.env.development === false){
+//if(conf.env === 'development'){
+  app.set('port', port);
+  app.set('ip',conf.ip);  
+}
 
 app.use(express.static(path.join(__dirname, 'public')));
 

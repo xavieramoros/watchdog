@@ -33,6 +33,14 @@ router.post('/add', function(req, res) {
           agendaName = 'crawl url '+url;
           console.log("Task added! Setting agenda...",agendaName);      
           
+          //FIXME check first if here is already one agenda like that
+          /*
+          if(agenda already exists){
+            //delete it
+            //create again
+          }else create 
+
+          */
           //set crawl agenda
           agenda.define(agendaName, function(job, done) { 
             //refresh task
@@ -86,19 +94,21 @@ router.delete('/delete/:id', function(req, res) {
 
 /* POST to refresh Task Service */
 router.post('/refresh/:id', function(req, res) {
-  console.log("REFRESH TASK: ");
+  console.log("REFRESH TASK");
   //console.log("req.params:",req.params);
 
   var id = req.params.id;
   refreshTask(id,function(err,result){
-    if(err) res.json({err:err,data:null});
-    res.json({err:null,data:result});
+    if(err){
+      res.json({err:err,data:null});
+    }else{
+      res.json({err:null,data:result});  
+    }
   })
 });
 
 //function that do a crawl and then saves it and updates the status.
 var refreshTask = function(id,callback){
-  console.log("RefreshTask...");
   //get task url, crawl it and save it.
   task.getTaskUrl(id,function(e,url){
     //once we have url, trigger crawl
@@ -111,37 +121,49 @@ var refreshTask = function(id,callback){
       //res.redirect('/crawls/url');
       //other way to do it instead of res.redirect('/crawls/url');
       request.post(conf.host+'/crawls/new',{form:{url:url}},function(err, response, body){
-        newCrawlData = response.body.data;
-        console.log('newCrawlData:',newCrawlData);
-        async.series([
-          //1-get previous crawl and compare to get task status
-          function(callback){
-            request.post(conf.host+'/crawls/last',{form:{url:url,data:newCrawlData}},function(err, response, body){
-              //call update status with oldCrawlData and newCrawlData.   
-              console.log('/crawls/last done!');
+        if(err){
+          //there was an error crawling
+          console.log("There was an error:",err);
+          callback(err,null);
+        }else{
+          bodyParsed = JSON.parse(body);
+          newCrawlData = bodyParsed.data;
+          console.log('newCrawlData:',newCrawlData);
+          async.series([
+            //1-get previous crawl and compare to get task status
+            function(callback){
+              request.post(conf.host+'/crawls/last',{form:{url:url,data:newCrawlData}},function(err, response, body){
+                //call update status with oldCrawlData and newCrawlData.   
+                console.log('/crawls/last done!');
 
-              if(response && response.body.data){  
-                oldCrawlData = response.body.data;
-                updateStatus(id,newCrawlData,oldCrawlData,callback);  
-              }else{
-                callback;
-              }
-            });
-          },
-          //2-save current crawlasync.parallel([
-          function(callback){
-            console.log('Then /crawls/save');
-            request.post(conf.host+'/crawls/save',{form:{url:url,data:newCrawlData}},function(err, response, body){
-              //update crawl date        
-              task.updateTaskDate(id,function(err,res){
-                (err === null) ? callback(null,res):callback(err,null);
+                if(response){  
+                  bodyParsed = JSON.parse(body);
+                  if(bodyParsed.data){
+                    oldCrawlData = bodyParsed.data;
+                    updateStatus(id,newCrawlData,oldCrawlData,callback);  
+                  }else{
+                    callback(bodyParsed.err,null);
+                  }
+                }else{
+                  callback("No response from /crawls/last",null);
+                }
               });
-            });
-          }
-        ], function(err, results){
-          console.log("Both async seris finished, results:",results);
-          callback(err,results);
-        });
+            },
+            //2-save current crawlasync.parallel([
+            function(callback){
+              console.log('Then /crawls/save');
+              request.post(conf.host+'/crawls/save',{form:{url:url,data:newCrawlData}},function(err, response, body){
+                //update crawl date        
+                task.updateTaskDate(id,function(err,res){
+                  (err === null) ? callback(null,res):callback(err,null);
+                });
+              });
+            }
+          ], function(err, results){
+            console.log("Both async seris finished, results:",results);
+            callback(err,results);
+          });
+        }
       });
     };
   });
