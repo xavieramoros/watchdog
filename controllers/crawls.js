@@ -68,8 +68,7 @@ router.post('/last', function(req, res) {
   var url = req.body.url;
   console.log("GET PREVIOUS CRAWL DATA:",url);
   crawl.lastCrawl(url, function(err,data){
-    console.log(data);
-    res.json({err:null,data:data});
+    res.json({err:null,data:data[0]});
   });
 });
 

@@ -49,7 +49,7 @@ var deleteTask = function(id,callback){
   });
 }
 
-var saveStatus = function(uid,statusObject,callback){
+var saveStatus = function(id,statusObject,callback){
   var taskcollection = db.get('taskcollection');
   taskcollection.findAndModify(
     { "_id": id },
@@ -62,10 +62,10 @@ var saveStatus = function(uid,statusObject,callback){
 var updateTaskDate = function(id, callback){
   var taskcollection = db.get('taskcollection');
   // Submit to the DB
-  var current_date = new Date();
+  //var current_date = new Date();
   taskcollection.findAndModify(
     { "_id": id },
-    { "$set": { "last_crawl": current_date}}, 
+    { "$set": { "last_crawl": new Date()}}, 
     function (err, doc) {
       (err === null) ? callback(null,doc):callback(err,null);
   });
@@ -102,6 +102,7 @@ module.exports = {
   addTask:addTask,
   listTasks:listTasks,
   deleteTask:deleteTask,
+  saveStatus:saveStatus,
   getTaskUrl:getTaskUrl,
   updateTaskDate:updateTaskDate
 };

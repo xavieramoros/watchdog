@@ -13,7 +13,7 @@ var crawls = require('./controllers/crawls');
 var tasks = require('./controllers/tasks');  
 var debug = require('debug')('watchdog:server');
 var http = require('http');
-
+_ = require('underscore');
 var app = express();
 
 // view engine setup

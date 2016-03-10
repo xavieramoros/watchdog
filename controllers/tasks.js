@@ -6,14 +6,34 @@ var router = express.Router();
 var request = require('request');
 var async = require('async');
 var utils = require('./utils');
+var dateFormat = require('dateformat'); 
 
 /* GET list of urls. */
 router.get('/list', function(req, res, next) {  
   console.log("LIST ALL TASK. ");
   task.listTasks(function(err,data){
     if(err) res.json({err:err,data:null});
+
+    //change date format.
     console.log(data);
-    res.json({err:null,data:data});
+
+    async.forEachOf(data, function(item, key, callback){
+      date = new Date(item.last_crawl);
+
+      //FIXME: show year if it's a different year.
+      var sameYear = true;
+      if(sameYear){
+        data[key].last_crawl = dateFormat(date,"ddd, mmmm dS, h:MM TT");  
+      }else{
+        data[key].last_crawl = dateFormat(date,"ddd, mmmm dS, yyyy, h:MM TT");  
+      }
+      
+      callback();
+    },function(err){
+      console.log(data);
+      if (err) console.error(err.message);
+      res.json({err:null,data:data});
+    });
   })
 }); 
 
@@ -46,7 +66,6 @@ router.post('/add', function(req, res) {
             //refresh task
             refreshTask(data.id,function(err,result){
               console.log("END OF TASK REFRESH");
-              res.json({err:null,data:''});
               done(); //to unlock the agenda job = the job is done
             });
           });
@@ -62,8 +81,8 @@ router.post('/add', function(req, res) {
             if(err) res.json({err:err,data:null});
             res.json({err:null,data:''});
           })*/
-          
-        })
+          res.json({err:null,data:''});
+          })
       }else{
         res.json({err:err,data:null});
       }
@@ -128,7 +147,6 @@ var refreshTask = function(id,callback){
         }else{
           bodyParsed = JSON.parse(body);
           newCrawlData = bodyParsed.data;
-          console.log('newCrawlData:',newCrawlData);
           async.series([
             //1-get previous crawl and compare to get task status
             function(callback){
@@ -174,57 +192,62 @@ var updateStatus = function(id,newCrawlData,oldCrawlData,callback){
   console.log('oldCrawlData:',oldCrawlData);
   statusObject = {};
   for (var key in newCrawlData) {
+    console.log("key:",key);
     if (newCrawlData.hasOwnProperty(key)) { //to make sure that the key you get is an actual property of an object, and doesn't come from the prototype
       //if old array has this property and it changed:
+      var tempKey = key;
+      //FIXME: use here libraries to compare strings
       if(oldCrawlData.hasOwnProperty(key) && newCrawlData[key]!==oldCrawlData[key]){
+
         //update status object
-        var alert_level; //low, medium, high
+        var alert_level; //ok, low, medium, high
         var message;
         switch(key){
           case 'title':
             alert_level = 'low';
-            message = 'Title has changed from "'+oldCrawlData[key]+'" to "'+newCrawlData[key]+'"';
+            message = 'Title has changed from -'+oldCrawlData[key]+'- to -'+newCrawlData[key]+'-';
             break;
           case 'meta_description':
             alert_level = 'low';
-            message = 'Meta description has changed from "'+oldCrawlData[key]+'" to "'+newCrawlData[key]+'"';
+            message = 'Meta description has changed from -'+oldCrawlData[key]+'- to -'+newCrawlData[key]+'-';
             break;
           case 'h1':
-            alert_level = 'low';
-            message = 'H1 has changed from "'+oldCrawlData[key]+'" to "'+newCrawlData[key]+'"';            
+            alert_level = 'medium';
+            message = 'H1 has changed from -'+oldCrawlData[key]+'- to -'+newCrawlData[key]+'-';            
             break;
           case 'robots':
             alert_level = 'high';  
-            message = 'Robots has changed from "'+oldCrawlData[key]+'" to "'+newCrawlData[key]+'"';                          
+            message = 'Robots has changed from -'+oldCrawlData[key]+'- to -'+newCrawlData[key]+'-';                          
             break;
           case 'canonical':
             alert_level = 'high'; 
-            message = 'Canonical has changed from "'+oldCrawlData[key]+'" to "'+newCrawlData[key]+'"';                                         
+            message = 'Canonical has changed from '+oldCrawlData[key]+' to -'+newCrawlData[key]+'-';                                         
             break;
           case 'mobile_alternate':
             alert_level = 'high';    
-            message = 'Mobile Alternate has changed from "'+oldCrawlData[key]+'" to "'+newCrawlData[key]+'"';                                      
+            message = 'Mobile Alternate has changed from -'+oldCrawlData[key]+'- to -'+newCrawlData[key]+'-';                                      
             break;
           case 'keywords':
             alert_level = 'low';    
-            message = 'Keywords has changed from "'+oldCrawlData[key]+'" to "'+newCrawlData[key]+'"';                                      
+            message = 'Keywords has changed from -'+oldCrawlData[key]+'- to -'+newCrawlData[key]+'-';                                      
             break;
           case 'amp_alternate':      
             alert_level = 'high';  
-            message = 'Amp Alernate has changed from "'+oldCrawlData[key]+'" to "'+newCrawlData[key]+'"';                                      
+            message = 'Amp Alernate has changed from -'+oldCrawlData[key]+'- to -'+newCrawlData[key]+'-';                                      
             break;
         };
-
         statusObject[key]={
           alert_level: alert_level,
           old_value: oldCrawlData[key],
           new_value: newCrawlData[key],
           message:message
-        }      
+        };
       }
     }
   }//end of loop through newCrawlData properties.
   console.log('Status:',statusObject);
+  console.log('statusObject[meta_description]:',statusObject.meta_description);
+
   
   //save statusObject.
   task.saveStatus(id,statusObject,function(err,res){

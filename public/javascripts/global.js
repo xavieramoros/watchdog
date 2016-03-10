@@ -20,6 +20,9 @@ $(document).ready(function() {
   */
   //on('click', 'td a.linkshowcrawls', populateCrawlsTable);
 
+  //Initilize tooltip
+  $('[data-toggle="tooltip"]').tooltip();
+
   $(".dropdown-menu li a").click(function(){
     var selText = $(this).text();
     $(this).parents('.dropdown').find('.dropdown-toggle').html(selText+' <span class="caret"></span>');
@@ -50,7 +53,37 @@ function populateTasksTable() {
         tableContent += (this.crawl_frequency >1 ? "s":""); //add s if >1 days
         tableContent +='</td>';            
         tableContent += '<td>' + this.last_crawl + '</td>';            
-        tableContent += '<td>' + this.status + '</td>';            
+        
+        //Status
+        tableContent+= '<td><ul>';
+        console.log(this.status);
+        for (var singleStatus in this.status) {
+          console.log(singleStatus); //h1
+          console.log("this.status.singleStatus",this.status[singleStatus]);
+
+
+          if (this.status.hasOwnProperty(singleStatus) && this.status[singleStatus].alert_level !== 'ok') {    
+            tableContent+= '<li class="statusList">';
+            console.log("MESSAGE:",this.status[singleStatus].message);
+            switch(this.status[singleStatus].alert_level){
+              case('low'):
+                tableContent+= '<a href="#" data-toggle="tooltip" title="'+this.status[singleStatus].message+'" class="alert_level glyphicon glyphicon-info-sign"> '+singleStatus+'</a>';
+                break;
+              case('medium'):
+                tableContent+= '<a href="#" data-toggle="tooltip" title="'+this.status[singleStatus].message+'" class="alert_level glyphicon glyphicon-warning-sign"> '+singleStatus+'</a>';
+
+                //tableContent+= '<span class="alert_level glyphicon-warning-sign">'+this.status[singleStatus].message+'</span>';
+                break;
+              case('high'):
+                tableContent+= '<a href="#" data-toggle="tooltip" title="'+this.status[singleStatus].message+'" class="alert_level glyphicon glyphicon-remove-circle"> '+singleStatus+'</a>';
+
+                //tableContent+= '<span class="alert_level glyphicon-remove-circle">'+this.status[singleStatus].message+'</span>';
+                break;  
+            }
+            tableContent+= '</li>';
+          }
+        }
+        tableContent+= '</ul></td>';
         tableContent += '<td><a href="#" class="linkdeletetask glyphicon glyphicon-remove" rel="' + this._id + '"></a></td>';
         tableContent += '</tr>';
       });
@@ -169,16 +202,21 @@ function addTask(event) {
         data: newTask,
         url: '/tasks/add',
         dataType: 'json'
-      }).done(function(err,res) {
-        // Check for successful (blank) response            
-        if (err) {
-          console.log(err);
-          console.log(err.code);
-          if(err.code === 'ENOTFOUND'){
+      }).done(function(data) {
+        // Check for successful (blank) response  
+        console.log("Add Task done...");
+
+        //dataParsed = JSON.parse(data);
+        console.log("res:",data);
+        
+        if (data.err) {
+          console.log(data.err);
+          console.log(data.err.code);
+          if(data.err.code === 'ENOTFOUND'){
             alert('That url seems unreachable');  
           }else{
             // If something goes wrong, alert the error message that our service returned
-            alert('Error: ',JSON.parse(err));  
+            alert('Error: ',data.err);  
           }
         }
         else{
