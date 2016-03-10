@@ -136,69 +136,73 @@ var refreshTask = function(id,callback){
           console.log("There was an error:",err);
           callback(err,null);
         }else{
-          bodyParsed = JSON.parse(body);
-          newCrawlData = bodyParsed.data;
-          async.series([
-            //1-get previous crawl and compare to get task status
-            function(callback){
-              var body = {
-                url:url,
-                data:newCrawlData
-              }
-  
-              var options = {
-                url:conf.host+'/crawls/last', 
-                method: "POST",
-                json: true,
-                body: body
-              };
-
-              request(options,function(err, response, body){
-                //call update status with oldCrawlData and newCrawlData.   
-                console.log('/crawls/last done!');
-
-                if(response){  
-                  console.log("body",body);
-                  if(body.data){
-                    console.log("bodyParsed.data",body.data);
-                    oldCrawlData = body.data;
-                    updateStatus(id,newCrawlData,oldCrawlData,callback);  
-                  }else{
-                    callback(body.err,null);
-                  }
-                }else{
-                  callback("No response from /crawls/last",null);
+          if(body.data){
+            newCrawlData = body.data;
+            async.series([
+              //1-get previous crawl and compare to get task status
+              function(callback){
+                var body = {
+                  url:url,
+                  data:newCrawlData
                 }
-              });
-            },
-            //2-save current crawlasync.parallel([
-            function(callback){
-              console.log('Then /crawls/save');
-              console.log('newCrawlData:',newCrawlData);
+    
+                var options = {
+                  url:conf.host+'/crawls/last', 
+                  method: "POST",
+                  json: true,
+                  body: body
+                };
 
-              var body = {
-                url:url,
-                data:newCrawlData
-              }
-  
-              var options = {
-                url:conf.host+'/crawls/save', 
-                method: "POST",
-                json: true,
-                body: body
-              };
+                request(options,function(err, response, body){
+                  //call update status with oldCrawlData and newCrawlData.   
+                  console.log('/crawls/last done!');
 
-              request(options,function(err, response, body){
-                //update crawl date        
-                task.updateTaskDate(id,function(err,res){
-                  (err === null) ? callback(null,res):callback(err,null);
+                  if(response){  
+                    console.log("body",body);
+                    if(body.data){
+                      console.log("bodyParsed.data",body.data);
+                      oldCrawlData = body.data;
+                      updateStatus(id,newCrawlData,oldCrawlData,callback);  
+                    }else{
+                      callback(body.err,null);
+                    }
+                  }else{
+                    callback("No response from /crawls/last",null);
+                  }
                 });
-              });
-            }
-          ], function(err, results){
-            console.log("Both async seris finished, results:",results);
-            callback(err,results);
-          });
+              },
+              //2-save current crawlasync.parallel([
+              function(callback){
+                console.log('Then /crawls/save');
+                console.log('newCrawlData:',newCrawlData);
+
+                var body = {
+                  url:url,
+                  data:newCrawlData
+                }
+    
+                var options = {
+                  url:conf.host+'/crawls/save', 
+                  method: "POST",
+                  json: true,
+                  body: body
+                };
+
+                request(options,function(err, response, body){
+                  //update crawl date        
+                  task.updateTaskDate(id,function(err,res){
+                    (err === null) ? callback(null,res):callback(err,null);
+                  });
+                });
+              }
+            ], function(err, results){
+              console.log("Both async seris finished, results:",results);
+              callback(err,results);
+            });
+          }
+        }//END IF
+        else{
+          callback(err,null);
         }
       });
     };
