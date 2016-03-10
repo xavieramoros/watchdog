@@ -13,21 +13,20 @@ router.get('/list', function(req, res, next) {
   console.log("LIST ALL TASK. ");
   task.listTasks(function(err,data){
     if(err) res.json({err:err,data:null});
-
     //change date format.
     console.log(data);
 
     async.forEachOf(data, function(item, key, callback){
-      date = new Date(item.last_crawl);
-
-      //FIXME: show year if it's a different year.
-      var sameYear = true;
-      if(sameYear){
-        data[key].last_crawl = dateFormat(date,"ddd, mmmm dS, h:MM TT");  
-      }else{
-        data[key].last_crawl = dateFormat(date,"ddd, mmmm dS, yyyy, h:MM TT");  
-      }
-      
+      if(item.last_crawl !== ' '){
+        date = new Date(item.last_crawl);
+        //FIXME: show year if it's a different year.
+        var sameYear = true;
+        if(sameYear){
+          data[key].last_crawl = dateFormat(date,"ddd, mmmm dS, h:MM TT");  
+        }else{
+          data[key].last_crawl = dateFormat(date,"ddd, mmmm dS, yyyy, h:MM TT");  
+        }
+      };
       callback();
     },function(err){
       console.log(data);
@@ -75,12 +74,6 @@ router.post('/add', function(req, res) {
             //FIXME: here you can add timezone: 'America/New_York', see doc.
           //});
           
-          /*
-          refreshTask(data.id,function(err,result){
-            console.log("END OF TASK REFRESH");
-            if(err) res.json({err:err,data:null});
-            res.json({err:null,data:''});
-          })*/
           res.json({err:null,data:''});
           })
       }else{
@@ -114,8 +107,6 @@ router.delete('/delete/:id', function(req, res) {
 /* POST to refresh Task Service */
 router.post('/refresh/:id', function(req, res) {
   console.log("REFRESH TASK");
-  //console.log("req.params:",req.params);
-
   var id = req.params.id;
   refreshTask(id,function(err,result){
     if(err){
@@ -150,17 +141,30 @@ var refreshTask = function(id,callback){
           async.series([
             //1-get previous crawl and compare to get task status
             function(callback){
-              request.post(conf.host+'/crawls/last',{form:{url:url,data:newCrawlData}},function(err, response, body){
+              var body = {
+                url:url,
+                data:newCrawlData
+              }
+  
+              var options = {
+                url:conf.host+'/crawls/last', 
+                method: "POST",
+                json: true,
+                body: body
+              };
+
+              request(options,function(err, response, body){
                 //call update status with oldCrawlData and newCrawlData.   
                 console.log('/crawls/last done!');
 
                 if(response){  
-                  bodyParsed = JSON.parse(body);
-                  if(bodyParsed.data){
-                    oldCrawlData = bodyParsed.data;
+                  console.log("body",body);
+                  if(body.data){
+                    console.log("bodyParsed.data",body.data);
+                    oldCrawlData = body.data;
                     updateStatus(id,newCrawlData,oldCrawlData,callback);  
                   }else{
-                    callback(bodyParsed.err,null);
+                    callback(body.err,null);
                   }
                 }else{
                   callback("No response from /crawls/last",null);
@@ -170,7 +174,21 @@ var refreshTask = function(id,callback){
             //2-save current crawlasync.parallel([
             function(callback){
               console.log('Then /crawls/save');
-              request.post(conf.host+'/crawls/save',{form:{url:url,data:newCrawlData}},function(err, response, body){
+              console.log('newCrawlData:',newCrawlData);
+
+              var body = {
+                url:url,
+                data:newCrawlData
+              }
+  
+              var options = {
+                url:conf.host+'/crawls/save', 
+                method: "POST",
+                json: true,
+                body: body
+              };
+
+              request(options,function(err, response, body){
                 //update crawl date        
                 task.updateTaskDate(id,function(err,res){
                   (err === null) ? callback(null,res):callback(err,null);
@@ -205,35 +223,35 @@ var updateStatus = function(id,newCrawlData,oldCrawlData,callback){
         switch(key){
           case 'title':
             alert_level = 'low';
-            message = 'Title has changed from -'+oldCrawlData[key]+'- to -'+newCrawlData[key]+'-';
+            message = 'Title has changed from <br><b>'+oldCrawlData[key]+'</b><br> to <br><b>'+newCrawlData[key]+'</b>';
             break;
           case 'meta_description':
             alert_level = 'low';
-            message = 'Meta description has changed from -'+oldCrawlData[key]+'- to -'+newCrawlData[key]+'-';
+            message = 'Meta description has changed from <br><b>'+oldCrawlData[key]+'</b><br> to <br><b>'+newCrawlData[key]+'</b>';
             break;
           case 'h1':
             alert_level = 'medium';
-            message = 'H1 has changed from -'+oldCrawlData[key]+'- to -'+newCrawlData[key]+'-';            
+            message = 'H1 has changed from <br><b>'+oldCrawlData[key]+'</b><br>to <br><b>'+newCrawlData[key]+'</b>';            
             break;
           case 'robots':
             alert_level = 'high';  
-            message = 'Robots has changed from -'+oldCrawlData[key]+'- to -'+newCrawlData[key]+'-';                          
+            message = 'Robots has changed from <br><b>'+oldCrawlData[key]+'</b><br>to <br><b>'+newCrawlData[key]+'</b>';                          
             break;
           case 'canonical':
             alert_level = 'high'; 
-            message = 'Canonical has changed from '+oldCrawlData[key]+' to -'+newCrawlData[key]+'-';                                         
+            message = 'Canonical has changed from <br><b>'+oldCrawlData[key]+'</b><br>to <br><b>'+newCrawlData[key]+'</b>';                                         
             break;
           case 'mobile_alternate':
             alert_level = 'high';    
-            message = 'Mobile Alternate has changed from -'+oldCrawlData[key]+'- to -'+newCrawlData[key]+'-';                                      
+            message = 'Mobile Alternate has changed from <br><b>'+oldCrawlData[key]+'</b><br>to <br><b>'+newCrawlData[key]+'</b>';                                      
             break;
           case 'keywords':
             alert_level = 'low';    
-            message = 'Keywords has changed from -'+oldCrawlData[key]+'- to -'+newCrawlData[key]+'-';                                      
+            message = 'Keywords has changed from <br><b>'+oldCrawlData[key]+'</b><br>to <br><b>'+newCrawlData[key]+'</b>';                                      
             break;
           case 'amp_alternate':      
             alert_level = 'high';  
-            message = 'Amp Alernate has changed from -'+oldCrawlData[key]+'- to -'+newCrawlData[key]+'-';                                      
+            message = 'Amp Alernate has changed from <br><b>'+oldCrawlData[key]+'</b><br>to <br><b>'+newCrawlData[key]+'</b>';                                      
             break;
         };
         statusObject[key]={
@@ -245,10 +263,6 @@ var updateStatus = function(id,newCrawlData,oldCrawlData,callback){
       }
     }
   }//end of loop through newCrawlData properties.
-  console.log('Status:',statusObject);
-  console.log('statusObject[meta_description]:',statusObject.meta_description);
-
-  
   //save statusObject.
   task.saveStatus(id,statusObject,function(err,res){
     callback();  

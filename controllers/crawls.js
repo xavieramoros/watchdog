@@ -30,17 +30,21 @@ router.post('/new', function(req, res) {
 router.post('/save', function(req, res) {
   var url = req.body.url;
   var crawlData = req.body.data;
+  console.log("SAVE CRAWL url:",url);
+
+  console.log("crawlData to save:",crawlData);
+  
 
   crawlData = {
-     'title':crawlData.title,
-     'meta_description':crawlData.meta_description,
-     'h1':crawlData.headingOne,
-     'robots':crawlData.robots,
-     'canonical':crawlData.canonical,
-     'mobile_alternate':crawlData.mobile_alternate,
-     'keywords':crawlData.keywords,
-     'amp_alternate':crawlData.amp_alternate
-  }
+   'title':crawlData.title,
+   'meta_description':crawlData.meta_description,
+   'h1':crawlData.headingOne,
+   'robots':crawlData.robots,
+   'canonical':crawlData.canonical,
+   'mobile_alternate':crawlData.mobile_alternate,
+   'keywords':crawlData.keywords,
+   'amp_alternate':crawlData.amp_alternate
+  };
 
 /*'mobile_alternate':
      'keywords':
@@ -68,34 +72,15 @@ router.post('/last', function(req, res) {
   var url = req.body.url;
   console.log("GET PREVIOUS CRAWL DATA:",url);
   crawl.lastCrawl(url, function(err,data){
-    res.json({err:null,data:data[0]});
+    if(err){
+      console.log('err');
+      res.json({err:err,data:null});  
+    }else{
+      console.log('data');
+      res.json({err:null,data:data[0]});
+    }
   });
 });
-
-
-
-/*
-  console.log("OPTIONS:",options);
-  if (task.protocol == 'https:') {
-    options.portNumber = '443';
-    var req = https.request(options, function(res) { 
-      console.log("http.request res:",res);
-      callback(null, res.statusCode);    
-    });
-  } else {
-    options.portNumber = '80';
-    request(url, function (error, response, body) {
-    if (!error && response.statusCode == 200) {
-      console.log(body) // Show the HTML for the Google homepage. 
-    }
-
-    var req = request(options, function(res) { 
-      console.log("http.request res:",res);
-      callback(null, res.statusCode);    
-    });
-  }
-}
-*/
 
 //function that given a url get parses it's html
 var crawlUrl = function(targetUrl,callback){
@@ -137,7 +122,7 @@ var crawlUrl = function(targetUrl,callback){
     }else{
       bodyParsed = parseBody(body);
       console.log('BODY PARSED:',bodyParsed);
-      callback(null,bodyParsed);
+      callback(null,bodyParsed); 
     }
   });
 }

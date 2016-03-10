@@ -34,6 +34,7 @@ var lastCrawl = function(url, callback){
   var crawlcollection = db.get('crawlcollection');
   //{sort:}
   crawlcollection.find({url:url},{sort:{crawl_date:-1},limit:1},function(err,docs){
+    console.log("DOCS:",docs);  
     if(err) callback(err,null);
     if(err) throw err;
     (err === null) ? callback(null,docs) : callback(err,null);

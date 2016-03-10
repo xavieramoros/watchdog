@@ -20,9 +20,6 @@ $(document).ready(function() {
   */
   //on('click', 'td a.linkshowcrawls', populateCrawlsTable);
 
-  //Initilize tooltip
-  $('[data-toggle="tooltip"]').tooltip();
-
   $(".dropdown-menu li a").click(function(){
     var selText = $(this).text();
     $(this).parents('.dropdown').find('.dropdown-toggle').html(selText+' <span class="caret"></span>');
@@ -67,15 +64,15 @@ function populateTasksTable() {
             console.log("MESSAGE:",this.status[singleStatus].message);
             switch(this.status[singleStatus].alert_level){
               case('low'):
-                tableContent+= '<a href="#" data-toggle="tooltip" title="'+this.status[singleStatus].message+'" class="alert_level glyphicon glyphicon-info-sign"> '+singleStatus+'</a>';
+                tableContent+= '<a href="#" data-toggle="tooltip" data-html="true" title="'+this.status[singleStatus].message+'" class="alert_level glyphicon glyphicon-info-sign"> '+singleStatus+'</a>';
                 break;
               case('medium'):
-                tableContent+= '<a href="#" data-toggle="tooltip" title="'+this.status[singleStatus].message+'" class="alert_level glyphicon glyphicon-warning-sign"> '+singleStatus+'</a>';
+                tableContent+= '<a href="#" data-toggle="tooltip" data-html="true" title="'+this.status[singleStatus].message+'" class="alert_level glyphicon glyphicon-warning-sign"> '+singleStatus+'</a>';
 
                 //tableContent+= '<span class="alert_level glyphicon-warning-sign">'+this.status[singleStatus].message+'</span>';
                 break;
               case('high'):
-                tableContent+= '<a href="#" data-toggle="tooltip" title="'+this.status[singleStatus].message+'" class="alert_level glyphicon glyphicon-remove-circle"> '+singleStatus+'</a>';
+                tableContent+= '<a href="#" data-toggle="tooltip" data-html="true" title="'+this.status[singleStatus].message+'" class="alert_level glyphicon glyphicon-remove-circle"> '+singleStatus+'</a>';
 
                 //tableContent+= '<span class="alert_level glyphicon-remove-circle">'+this.status[singleStatus].message+'</span>';
                 break;  
@@ -93,7 +90,8 @@ function populateTasksTable() {
 
     //connect links
     $('#crawlList table tbody').on('click', 'td a.linkshowcrawls', populateCrawlsTable);
-
+    //Initilize tooltip
+    $('[data-toggle=tooltip]').tooltip();
   });
 };
 

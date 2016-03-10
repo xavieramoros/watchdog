@@ -18,7 +18,7 @@ var addTask = function(url,freq,callback){
   taskcollection.insert({
       "url" : url,
       "crawl_frequency": freq,
-      "last_crawl": " "
+      "last_crawl": new Date()
   }, function (err, doc) {
     if(err) throw err;
     var data = {
