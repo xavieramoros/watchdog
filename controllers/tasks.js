@@ -126,10 +126,21 @@ var refreshTask = function(id,callback){
       res.json({err:e,data:null});
     }else{
       console.log("Crawling url:",url);
-      //req.flash('url', url);//using session flash message to pass url.      
-      //res.redirect('/crawls/url');
-      //other way to do it instead of res.redirect('/crawls/url');
-      request.post(conf.host+'/crawls/new',{form:{url:url}},function(err, response, body){
+      
+      var body = {
+        url:url
+      }
+
+      var options = {
+        url:conf.host+'/crawls/new', 
+        method: "POST",
+        json: true,
+        body: body
+      };
+
+      console.log("POST url:",conf.host+'/crawls/new');
+      request(options,function(err, response, body){
+        console.log('/crawls/new callback!');
         if(err){
           //there was an error crawling
           console.log("There was an error:",err);
