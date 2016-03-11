@@ -70,10 +70,9 @@ router.post('/add', function(req, res) {
           });
 
           //agenda.on('ready', function() {
-          agenda.every('30 seconds', agendaName); 
+          agenda.every(crawl_frequency+' days', agendaName); 
             //FIXME: here you can add timezone: 'America/New_York', see doc.
           //});
-          
           res.json({err:null,data:''});
           })
       }else{
@@ -200,9 +199,9 @@ var refreshTask = function(id,callback){
               callback(err,results);
             });
           }
-        }//END IF
-        else{
-          callback(err,null);
+          else{
+            callback(err,null);
+          }//END IF
         }
       });
     };
