@@ -29,7 +29,6 @@ router.get('/list', function(req, res, next) {
       };
       callback();
     },function(err){
-      console.log(data);
       if (err) console.error(err.message);
       res.json({err:null,data:data});
     });
@@ -141,6 +140,8 @@ var refreshTask = function(id,callback){
       console.log("POST url:",conf.host+'/crawls/new');
       request(options,function(err, response, body){
         console.log('/crawls/new callback!');
+        console.log('err:',err);
+        console.log('body:',body);
         if(err){
           //there was an error crawling
           console.log("There was an error:",err);
