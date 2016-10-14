@@ -12,7 +12,7 @@ Tech stack:
 
 To run: After `npm install`, run `npm start`
 
-![Screenshot](https://raw.github.com/xavieramoros/watchdog/master/screenshot.png
+![Screenshot](https://raw.github.com/xavieramoros/watchdog/master/screenshot.png)
 
 The OpenShift `nodejs` cartridge documentation can be found at:
 http://openshift.github.io/documentation/oo_cartridge_guide.html#nodejs
